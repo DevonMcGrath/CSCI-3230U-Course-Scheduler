@@ -1,0 +1,25 @@
+body {margin: 0; padding: 8px; font-family: "Arial";}
+
+.nav {
+	margin: 0 auto;
+	padding: 5px 0 4px 0;
+	text-align: center;
+	background-color: #0078CA;
+	background: -webkit-linear-gradient(#003C71, #0078CA);
+	background: -moz-linear-gradient(#003C71, #0078CA);
+	background: -o-linear-gradient(#003C71, #0078CA);
+	background: linear-gradient(#003C71, #0078CA);
+}
+
+.nav li {
+	list-style-type: none;
+	margin: 5px;
+	padding: 0;
+	display: inline-block;
+}
+
+.nav li a {
+	text-decoration: none;
+	color: white;
+	padding: 10px 8px;
+}
