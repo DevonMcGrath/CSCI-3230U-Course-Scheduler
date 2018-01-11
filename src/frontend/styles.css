@@ -1,7 +1,24 @@
-body {margin: 0; padding: 8px; font-family: "Arial";}
+body {margin: 0; padding: 20px 0 0 0; font-family: "Arial";}
+
+.content {
+	padding: 8px;
+}
+
+.pre-nav {
+	padding: 8px;
+	text-align: center;
+	display: none;
+	color: white;
+	background-color: #003C71;
+	cursor: pointer;
+}
 
 .nav {
-	margin: 0 auto;
+	position: fixed;
+	left: 0;
+	top: 0;
+	width: 100%;
+	margin: 0;
 	padding: 5px 0 4px 0;
 	text-align: center;
 	background-color: #0078CA;
@@ -22,4 +39,19 @@ body {margin: 0; padding: 8px; font-family: "Arial";}
 	text-decoration: none;
 	color: white;
 	padding: 10px 8px;
+}
+
+.nav li a:hover {color: #EFEFFF; text-shadow: 0 0 3px black;}
+
+.pre-nav:hover+.nav {
+	display: block;
+}
+
+.nav:hover {display: block;}
+
+@media screen and (max-width: 675px) {
+	body {padding: 0;}
+	.pre-nav {display: block;}
+	.nav {position: relative; display: none;}
+	.nav li {display: block; margin: 20px 0;}
 }
