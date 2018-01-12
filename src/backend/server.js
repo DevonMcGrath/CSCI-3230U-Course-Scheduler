@@ -1,18 +1,33 @@
+/* Name: server.js
+ * Author: Devon McGrath
+ * Description: This JS file is the main server-side code for the web app.
+ * It is responsible for receiving client HTTP requests and responding with
+ * the appropriate data (HTML/CSS/JavaScript/JSON/image etc.).
+ */
+
 // Required modules
 var http = require('http');
 var fs = require('fs');
 var url = require('url');
+var parser = require('./web-parser');
 
 // Constants
-var PORT = 8080;	// the port the server is listening on
-var ERROR_404_FILE = "../frontend/error404.html";
-var URI_MAPPINGS = [
+var PORT = 8080; // the port the server is listening on
+var FAVICON = '../frontend/favicon.ico'; // path to the favicon
+var ERROR_404_FILE = "../frontend/error404.html"; // path to the 404 error page
+var URI_MAPPINGS = [ // the mapping from a URI to file for the server to send
+	// Main pages
 	{"uri": "/", "file": "../frontend/index.html", "type": "text/html"},
 	{"uri": "/select-courses", "file": "../frontend/select-courses.html", "type": "text/html"},
 	{"uri": "/schedule-options", "file": "../frontend/schedule-options.html", "type": "text/html"},
 	{"uri": "/schedule-creator", "file": "../frontend/schedule-creator.html", "type": "text/html"},
 	{"uri": "/programs", "file": "../frontend/programs.html", "type": "text/html"},
-	{"uri": "/styles.css", "file": "../frontend/styles.css", "type": "text/css"}
+	
+	// CSS files
+	{"uri": "/styles.css", "file": "../frontend/styles.css", "type": "text/css"},
+	
+	// AJAX requests
+	{"uri": "/get-terms", "type": "text/html", "getter": parser.getTerms}
 ];
 
 console.log('Starting server on port:', PORT);
@@ -22,21 +37,32 @@ http.createServer(function (request, response) {
 	setTimeout(respondToRequest, 0, request, response);
 }).listen(PORT);
 
+/**
+ * Sends the user a HTTP response with the appropriate data. If the requested
+ * URI in the HTTP request is not mapped to any file for the server to send,
+ * the response will be the error 404 page. The only exception to this is when
+ * the URI has a 'getter' function, which will instead be used to send the
+ * page response.
+ *
+ * req	the HTTP request sent by a client.
+ * res	the HTTP response object to send the data back to the user.
+ */
 function respondToRequest(req, res) {
 	
 	// Get the URI from the URL
 	var uri = url.parse(req.url).pathname;
 
-	// Print the name of the file for which request is made.
-	console.log("Request for " + uri + " received.");
+	// Log the requested resource URI
+	console.log("Request for '" + uri + "' received.");
 	
 	// If requesting favicon, serve it
 	if (uri == '/favicon.ico') {
 		
-		fs.readFile('../frontend/favicon.ico', function(error, data) {
+		fs.readFile(FAVICON, function(error, data) {
 			if (!error) { // Send the file data
 				res.writeHead(200, {});
-				res.end(data);
+				res.write(data);
+				res.end();
 			} else { // Missing file
 				res.writeHead(404, {});
 				res.end();
@@ -46,30 +72,42 @@ function respondToRequest(req, res) {
 	}
 	
 	// Figure out if the URI has a mapping
-	var filePath = '', type = 'text/html';
+	var filePath = '', type = 'text/html', getter;
 	for (var i = 0; i < URI_MAPPINGS.length; i ++) {
 		var map = URI_MAPPINGS[i];
 		if (map.uri == uri) {
-			filePath = map.file;
+			if (map.file) {
+				filePath = map.file;
+			} else {
+				getter = map.getter;
+			}
 			type = map.type;
 			break;
 		}
 	}
-	if (filePath.length == 0) {
+	if (filePath.length == 0 && !getter) { // no mapping, send 404 page
 		filePath = ERROR_404_FILE;
+	}
+	
+	// Check if a getter exists
+	if (getter) {
+		getter(req, res);
+		return;
 	}
 	
 	// Serve the file to the user
 	fs.readFile(filePath, function(error, data) {
 		if (!error) { // Send the file data
 			res.writeHead(200, {'Content-Type': type});
-			res.end(data);
+			res.write(data);
+			res.end();
 		} else { // Missing file
 			var err404 = '<!DOCTYPE html><html lang="en-ca"><head><title>Error 404</title></head>';
 			err404 += '<body><p>Error 404: Page not found!</p><p>Go back to the app <a ';
 			err404 += 'href="'+URI_MAPPINGS[0].uri+'">here</a>.</p></body></html>';
 			res.writeHead(404, {'Content-Type': 'text/html'});
-			res.end(err404);
+			res.write(err404);
+			res.end();
 		}
 	});
 }
