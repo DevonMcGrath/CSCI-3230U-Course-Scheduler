@@ -6,6 +6,7 @@
 
 // Required modules
 var http = require('http');
+var url = require('url');
 
 // Main pages
 var TERM_PAGE = {
@@ -121,6 +122,19 @@ function getTerms(req, res) {
  */
 function getPrograms(req, res) {
 	
+	// Get the URL
+	var reqUrl = url.parse(req.url);
+	
+	// If it has ?[number] in the url, get the program [number] data
+	if (reqUrl.search && progLinks) { 
+		var number = parseInt(reqUrl.search.slice(1));
+		if (number >= 0 && number < progLinks.length) {
+			getWebPageData(CATALOG_PAGE.domain, '/'+progLinks[number].uri,
+				function(html) {getCourses(html, res);}, 'GET');
+			return;
+		}
+	}
+	
 	// If a list of programs was already requested earlier
 	if (progLinks) {
 		sendProgramList(res);
@@ -201,6 +215,42 @@ function sendProgramList(res) {
 	}
 	res.writeHead(200, {'Content-Type': 'text/plain'});
 	res.write(list);
+	res.end();
+}
+
+function getCourses(html, res) {
+	if (!html) {html = '';}
+	
+	// Split by year
+	var years = html.split(/<\/a>Year /i), out = '';
+	for (var i = 1; i < years.length; i ++) {
+		var d = years[i].replace(/&#160;/g, ' ').replace(/&#8211;/g, '-');
+			
+		// Get the year
+		out = out + '<th>Year ' + d.split('<', 2)[0] + '</th>\n';
+		
+		// Get the text from the HTML
+		var txt = ('<' + d.slice(d.indexOf('<'))).replace(/<[^>]+>/g, '\n');
+		txt = txt.replace(/\n{2,}/g, '\n');
+
+		// Trim the string to only necessary content
+		var lines = txt.split('\n'), n = lines.length, lastAdd = 0;
+		var exp = /(Elective|^or|^one of|^Semester|^[a-z]{3,4} [0-9]{4})/i;
+		txt = '';
+		for (var j = 0; j < n && (j - lastAdd) < 7; j ++) {
+			if (exp.test(lines[j])) {
+				txt += lines[j] + '\n';
+				lastAdd = j;
+			}
+		}
+		txt = txt.replace(/(^\n+|\n+$)/g, '');
+		
+		out += txt + '\n';
+	}
+	
+	// Send the response to the client
+	res.writeHead(200, {'Content-Type': 'text/plain'});
+	res.write(out);
 	res.end();
 }
 

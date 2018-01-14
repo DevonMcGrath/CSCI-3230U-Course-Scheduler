@@ -1,6 +1,12 @@
 body {margin: 0; padding: 20px 0 0 0; font-family: "Arial";}
-h1 {text-align: center; color: #003C71;}
+h1 {text-align: center; color: #0078CA; text-shadow: 0 1px #003C71, 1px 0 #003C71;}
 input[type=text] {padding: 8px;}
+
+.border-box {
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+}
 
 .content {
 	padding: 8px;
@@ -51,7 +57,7 @@ input[type=text] {padding: 8px;}
 
 .nav:hover {display: block;}
 
-.btn {
+.btn, .btn-clear {
 	display: inline-block;
 	text-decoration: none;
 	font-weight: bold;
@@ -59,6 +65,9 @@ input[type=text] {padding: 8px;}
 	padding: 8px;
 	margin: 0 5px;
 	cursor: pointer;
+}
+
+.btn {
 	color: white;
 	background-color: #003C71;
 	background: -webkit-linear-gradient(#0078CA, #003C71, #0078CA);
@@ -73,6 +82,23 @@ input[type=text] {padding: 8px;}
 	background: -moz-linear-gradient(#0098EA, #005C91, #0098EA);
 	background: -o-linear-gradient(#0098EA, #005C91, #0098EA);
 	background: linear-gradient(#0098EA, #005C91, #0098EA);
+}
+
+.btn-clear {
+	color: white;
+	background-color: #CF0000;
+	background: -webkit-linear-gradient(#DF0000, #AF0000);
+	background: -moz-linear-gradient(#DF0000, #AF0000);
+	background: -o-linear-gradient(#DF0000, #AF0000);
+	background: linear-gradient(#DF0000, #AF0000);
+}
+
+.btn-clear:hover {
+	background-color: #EF0000;
+	background: -webkit-linear-gradient(#FF0000, #CF0000);
+	background: -moz-linear-gradient(#FF0000, #CF0000);
+	background: -o-linear-gradient(#FF0000, #CF0000);
+	background: linear-gradient(#FF0000, #CF0000);
 }
 
 @media screen and (max-width: 675px) {

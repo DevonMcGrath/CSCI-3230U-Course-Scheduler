@@ -19,12 +19,13 @@
 		
 		<div class="content">
 			<h1>Program</h1>
-			<input type="text" id="program" onkeyup="updateSearch();" spellcheck="false" autofocus />
+			<input type="text" id="program" class="border-box" onkeyup="updateSearch();" spellcheck="false" autofocus />
 			<div id="program-result"></div>
 			
-			<div id="courses"><p>TODO: get courses for a program</p></div>
+			<table id="courses" class="border-box"><td><p><i>Enter your program above</i></p></td></table>
+			<div id="added"></div>
 			<div id="panel">
-				<span class="btn">Clear Selection</span>
+				<span class="btn-clear" onclick="clearSelection();">Clear Selection</span>
 				<span class="btn">Add Courses</span>
 			</div>
 		</div>

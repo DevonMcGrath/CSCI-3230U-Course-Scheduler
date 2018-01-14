@@ -4,6 +4,7 @@
  */
 
 var progs = [];
+var courses = [];
 
 /** Gets the list of programs available. */
 function getPrograms() {
@@ -30,7 +31,7 @@ function updateSearch() {
 	var html = '', n = progs.length, match = -1, show = 0, LIMIT = 5;
 	for (var i = 0; i < n && show < LIMIT; i ++) {
 		var p = progs[i];
-		if (p == txt) {
+		if (p.toLowerCase() == txt.toLowerCase()) {
 			match = i;
 			html = '';
 			break;
@@ -41,13 +42,18 @@ function updateSearch() {
 		}
 	}
 	res.innerHTML = html;
-	if (match.length > 0) {
+	if (match >= 0) {
 		setResult(match);
 	}
 	
 	return match;
 }
 
+/**
+ * Updates the text input to display the program at index 'result'. Then, sends
+ * an HTTP request to the server to get the program details.
+ *	result	the index of the program to get.
+ */
 function setResult(result) {
 	if (result < 0 || result >= progs.length) {return;}
 	
@@ -55,8 +61,85 @@ function setResult(result) {
 	document.getElementById('program').value = progs[result];
 	document.getElementById('program-result').innerHTML = '';
 	
-	// TODO: get list of courses
-	// send GET request to '/get-programs?[result]'
+	// Send the request
+	getData('/get-programs?' + result, function(txt) {
+		if (!txt) {txt = '';}
+		var html = '';
+
+		// Create the HTML
+		var lines = txt.split('\n'), n = lines.length, exp = /^[a-z]{3,4} [0-9]{4}[a-z]/i;
+		var anti = /(elective.+requirement|[0-9] credit hour|[a-z]{3,4} [0-9]{4}[a-z]$)/i
+		courses = [];
+		for (var i = 0; i < n; i ++) {
+			var l = lines[i];
+			if (!l.startsWith('<')) {
+				var m = l.match(exp), s = l.startsWith('Semester');
+				if (anti.test(l) && !s) {continue;}
+				if (m) {
+					l = '<td id="courses-c' + courses.length + '" onclick="' +
+						'updateSelected('+courses.length+');" class="course">'+l+'</td>';
+					courses.push({"name": m, "selected": false});
+				} else if (s) {
+					l = '<td class="semester">' + l + '</td>';
+				} else {
+					l = '<td class="course-info">' + l + '</td>';
+				}
+			}
+			html = html + '<tr>' + l + '</tr>\n';
+		}
+		
+		document.getElementById('courses').innerHTML = html;
+	});
+}
+
+/**
+ * Sets the selected state of a course.
+ *	selected	true to select the course, false otherwise.
+ *	courseIndex	the index of the course to update.
+ */
+function setSelected(selected, courseIndex) {
+	if (!courses || courseIndex < 0 || courseIndex >= courses.length) {
+		return;
+	}
+	courses[courseIndex].selected = selected;
+	var td = document.getElementById('courses-c' + courseIndex);
+	if (td) {
+		td.style.backgroundColor = selected? '#DFDFFF' : 'white';
+	}
+	updateAdded();
+}
+
+/**
+ * Selects the course index specified, if not selected. If the course is
+ * selected, it's selection will be cleared.
+ * 	courseIndex	the index of the course to update.
+ */
+function updateSelected(courseIndex) {
+	if (!courses || courseIndex < 0 || courseIndex >= courses.length) {
+		return;
+	}
+	setSelected(!courses[courseIndex].selected, courseIndex);
+}
+
+/** Updates the 'added' div to show the complete list of selected courses. */
+function updateAdded() {
+	
+	var added = '', n = courses? courses.length : 0;
+	for (var i = 0; i < n; i ++) {
+		if (courses[i].selected) {
+			added += '<span class="btn-clear" onclick="setSelected(false, '+
+				i + ')" title="Remove selection">' + courses[i].name + '</span>';
+		}
+	}
+	document.getElementById('added').innerHTML = added;
+}
+
+/** Clears the selected courses. */
+function clearSelection() {
+	var n = courses? courses.length : 0;
+	for (var i = 0; i < n; i ++) {
+		setSelected(false, i);
+	}
 }
 
 getPrograms();

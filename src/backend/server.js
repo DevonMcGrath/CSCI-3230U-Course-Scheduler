@@ -56,7 +56,8 @@ http.createServer(function (request, response) {
 function respondToRequest(req, res) {
 	
 	// Get the URI from the URL
-	var uri = url.parse(req.url).pathname;
+	var reqUrl = url.parse(req.url);
+	var uri = reqUrl.pathname;
 
 	// Log the requested resource URI
 	console.log("Request for '" + uri + "' received.");
