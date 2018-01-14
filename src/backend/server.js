@@ -25,9 +25,15 @@ var URI_MAPPINGS = [ // the mapping from a URI to file for the server to send
 	
 	// CSS files
 	{"uri": "/styles.css", "file": "../frontend/styles.css", "type": "text/css"},
+	{"uri": "/styles/programs.css", "file": "../frontend/styles/programs.css", "type": "text/css"},
+	
+	// JS files
+	{"uri": "/scripts/core.js", "file": "../frontend/scripts/core.js", "type": "text/javascript"},
+	{"uri": "/scripts/programs.js", "file": "../frontend/scripts/programs.js", "type": "text/javascript"},
 	
 	// AJAX requests
-	{"uri": "/get-terms", "type": "text/html", "getter": parser.getTerms}
+	{"uri": "/get-terms", "type": "text/html", "getter": parser.getTerms},
+	{"uri": "/get-programs", "type": "text/plain", "getter": parser.getPrograms}
 ];
 
 console.log('Starting server on port:', PORT);

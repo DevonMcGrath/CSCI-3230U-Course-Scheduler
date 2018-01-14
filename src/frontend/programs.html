@@ -5,6 +5,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
 		<link rel="stylesheet" href="/styles.css" />
+		<link rel="stylesheet" href="/styles/programs.css" />
 	</head>
 	<body>
 		<span class="pre-nav">Menu</span>
@@ -17,7 +18,19 @@
 		</ul>
 		
 		<div class="content">
-			<p>TODO: programs page</p>
+			<h1>Program</h1>
+			<input type="text" id="program" onkeyup="updateSearch();" spellcheck="false" autofocus />
+			<div id="program-result"></div>
+			
+			<div id="courses"><p>TODO: get courses for a program</p></div>
+			<div id="panel">
+				<span class="btn">Clear Selection</span>
+				<span class="btn">Add Courses</span>
+			</div>
 		</div>
+		
+		<!-- Required scripts -->
+		<script src="/scripts/core.js"></script>
+		<script src="/scripts/programs.js"></script>
 	</body>
 </html>
