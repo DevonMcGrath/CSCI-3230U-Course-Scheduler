@@ -15,10 +15,16 @@ One of the challenges students (especially first-years) face is creating a good 
 
 ## TODO
 - [ ] Front-end: create pages, style, front-end JS
-- [ ] Node.js: Create back-end server
+- [x] Node.js: Create back-end server
 - [ ] Node.js: Create web scraper for getting course listings
+- [ ] Node.js: Track sessions
 - [ ] Database: containing sections that are relevant to the user
 - [ ] AJAX: to get terms and subjects in a given term
+- [ ] Home page
+- [ ] Select Courses page
+- [ ] Schedule Options page
+- [ ] Schedule Creator page
+- [x] Program Browser page
 - [ ] Other requirements...
 
 ## Pages TODO
@@ -47,12 +53,3 @@ The schedule options page is used to determine how the user wants to generate th
 ### Schedule Creator Page
 This page is responsible for allowing the user to create, modify, and download their schedule. Supported download types should be: images (of schedule), CSV (of CRNs), and possibly PDF. On wider screens (e.g. tablets, desktops) the schedule view should be the entire week. On smaller screens such as mobile devices, only show one day at a time.
 The user should be able to interactively modify their schedule to include or remove sections of the courses selected from the previous page. While doing this, the schedule view should change to show outlines of sections the user wants to add to see how the schedule would change.
-
-### Program Info Page
-This page allows the user to figure out which courses they need to take. Usage is as follows:
-1. Server: gets the link to the 'Program (by Degree)' from http://catalog.uoit.ca/
-1. Server: gets a list of degree programs and sends HTTP response with that data
-1. User: selects/enters the program they are in (or are looking for)
-1. Page: sends AJAX request to Node server requesting the list of courses for the selected program
-1. Server: scrapes the page to get the list of courses and descriptions, by term
-1. User: can optionally return to the course selection page with the list of courses inputted
