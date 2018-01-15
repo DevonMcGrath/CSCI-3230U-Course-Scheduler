@@ -68,7 +68,7 @@ function setResult(result) {
 
 		// Create the HTML
 		var lines = txt.split('\n'), n = lines.length, exp = /^[a-z]{3,4} [0-9]{4}[a-z]/i;
-		var anti = /(elective.+requirement|[0-9] credit hour|[a-z]{3,4} [0-9]{4}[a-z]$)/i
+		var anti = /(elective.+requirement| credit hour|[a-z]{3,4} [0-9]{4}[a-z]$)/i
 		courses = [];
 		for (var i = 0; i < n; i ++) {
 			var l = lines[i];
@@ -104,7 +104,7 @@ function setSelected(selected, courseIndex) {
 	courses[courseIndex].selected = selected;
 	var td = document.getElementById('courses-c' + courseIndex);
 	if (td) {
-		td.style.backgroundColor = selected? '#DFDFFF' : 'white';
+		td.setAttribute('style', selected? 'background-color: #CFCFFF;' : '');
 	}
 	updateAdded();
 }
@@ -127,11 +127,11 @@ function updateAdded() {
 	var added = '', n = courses? courses.length : 0;
 	for (var i = 0; i < n; i ++) {
 		if (courses[i].selected) {
-			added += '<span class="btn-clear" onclick="setSelected(false, '+
+			added += '<span class="btn-simple" onclick="setSelected(false, '+
 				i + ')" title="Remove selection">' + courses[i].name + '</span>';
 		}
 	}
-	document.getElementById('added').innerHTML = added;
+	document.getElementById('added').innerHTML = (added.length > 0? 'Selected Courses: ' : '') + added;
 }
 
 /** Clears the selected courses. */
