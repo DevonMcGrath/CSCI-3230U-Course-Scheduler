@@ -7,6 +7,7 @@
 // Required modules
 var http = require('http');
 var url = require('url');
+var querystring = require('querystring');
 
 // Main pages
 var TERM_PAGE = {
@@ -15,7 +16,8 @@ var TERM_PAGE = {
 	"getData": function (termId) {
 		return 'p_calling_proc=bwckschd.p_disp_dyn_sched&TRM=U&p_term=' + termId;
 	},
-	"postUri": "/prod_uoit/bwckgens.p_proc_term_date"
+	"postUri": "/prod_uoit/bwckgens.p_proc_term_date",
+	"terms": []
 };
 var CATALOG_PAGE = {
 	"domain": "catalog.uoit.ca",
@@ -82,17 +84,40 @@ function getWebPageData(domain, uri, callback, method, data) {
 }
 
 /**
- * Gets the available terms to create a schedule for, as HTML and sends
- * it back through the HTTP response.
+ * Gets the available terms to create a schedule for, as text and sends
+ * it back through the HTTP response. The response text is tab-separated term
+ * IDs (e.g. 201801\t201709\t201705...).
  *
  * req	the initial client request.
  * res	the HTTP response object.
  */
 function getTerms(req, res) {
+	
+	// Check if the terms have already been requested before
+	if (TERM_PAGE.terms.length) {
+		console.log('> Sending cached terms.');
+		
+		// Create the text
+		var v = TERM_PAGE.terms, n = v.length, txt = '';
+		for (var i = 0; i < n; i ++) {
+			txt += v[i] + '\t';
+		}
+		if (txt.length > 0) {
+			txt = txt.substr(0, txt.length - 1);
+		}
+		
+		// Send the response text
+		res.writeHead(200, {'Content-Type': 'text/plain'});
+		res.write(txt);
+		res.end();
+		
+		return;
+	}
 
 	// Make the request
 	getWebPageData(TERM_PAGE.domain, TERM_PAGE.uri, function(html) {
 		
+		var form = {}, txt = '';
 		try {
 			
 			// Get only the form
@@ -102,12 +127,32 @@ function getTerms(req, res) {
 			}
 			parts = html.split(/<\/form>/i);
 			html = parts[0] + "</form>";
-			html = html.replace(/ \(view schedule only\)/gi, '');
+			form = getFormData(html)[0];
+			
+			// Get the terms
+			if (form) {
+				for (var i = 0; i < form.inputs.length; i ++) {
+					if (form.inputs[i].values.length > 1) {
+						var v = form.inputs[i].values, n = v.length;
+						for (var j = 0; j < n; j ++) {
+							if (v[j].length > 0) {
+								txt += v[j] + '\t';
+								TERM_PAGE.terms.push(v[j]);
+							}
+						}
+						if (txt.length > 0) {
+							txt = txt.substr(0, txt.length - 1);
+						}
+						break;
+					}
+				}
+			}
 		} catch (e) {console.log(e);}
+		TERM_PAGE.form = form;
 		
-		// Send the response HTML
-		res.writeHead(200, {});
-		res.write(html);
+		// Send the response text
+		res.writeHead(200, {'Content-Type': 'text/plain'});
+		res.write(txt);
 		res.end();
 	}, 'GET');
 }
@@ -206,6 +251,11 @@ function getPrograms(req, res) {
 	}, 'GET');
 }
 
+/** 
+ * Sends the list of programs available to the client.
+ *
+ *	res	the HTTP response object to respond to the client.
+ */
 function sendProgramList(res) {
 	
 	// Generate the output
@@ -218,6 +268,13 @@ function sendProgramList(res) {
 	res.end();
 }
 
+/**
+ * Parses the HTML from a program page and gets the list of courses needed to
+ * be taken to complete the program. Then, the function sends the data as plain
+ * text back to the client.
+ *
+ *	res	the HTTP response object to respond to the client.
+ */
 function getCourses(html, res) {
 	if (!html) {html = '';}
 	
@@ -252,6 +309,91 @@ function getCourses(html, res) {
 	res.writeHead(200, {'Content-Type': 'text/plain'});
 	res.write(out);
 	res.end();
+}
+
+/**
+ * Parses a raw HTML string to get form data. This includes the action, method,
+ * inputs, and default values.
+ *
+ *	html	the raw HTML string to parse.
+ * Returns an array of form objects, each with the properties: 'action' : string,
+ * 'method' : string, 'inputs' : Array({'name' : string, 'values' : Array(string)}).
+ */
+function getFormData(html) {
+	if (!html) {return [];}
+	
+	// Parse each form individually
+	var forms = [];
+	var s = html.split(/<form /i);
+	for (var i = 1; i < s.length; i++) {
+		var f = s[i].split(/<\/form>/i, 2)[0];
+		var obj = {"action": "", "method": "GET", "inputs": []};
+		var tmp = f.split('>', 2);
+		
+		// Get the basic form info
+		obj.action = extractAttribute(tmp[0], 'action');
+		var r = extractAttribute(tmp[0], 'method');
+		if (r.length > 0) {
+			obj.method = r.toUpperCase();
+		}
+		
+		// Get the form elements
+		f = f.replace(/(\n|\r\n)/g, '');
+		var m = f.match(/(<input[^>]*>|<select(.+?)<\/select>|<textarea(.+?)<\/textarea>)/gi);
+		var n = m? m.length : 0;
+		for (var j = 0; j < n; j ++) {
+			var inObj = {"name": extractAttribute(m[j], 'name'), "values": []};
+
+			// Handle the different inputs
+			if (!/^<select/i.test(m[j])) { // <input .../> and <textarea></textarea>
+				inObj.values.push(extractAttribute(m[j], 'value'));
+			} else { // <select>...</select>
+				// Check for 'selected' option
+				var opt = m[j].match(/<option[^>]+selected[^>]*>/i);
+				if (opt) {
+					inObj.values.push(extractAttribute(opt[0], 'value'));
+					m[j] = m[j].replace(opt[0], '');
+				}
+				opt = m[j].match(/<option[^>]+>/gi);
+				if (opt) {
+					for (var k = 0; k < opt.length; k ++) {
+						inObj.values.push(extractAttribute(opt[k], 'value'));
+					}
+				}
+			}
+			obj.inputs.push(inObj);
+		}
+		
+		forms.push(obj);
+	}
+	
+	return forms;
+}
+
+/**
+ * Gets the specified attribute value. E.g. if the HTML is <input name="a" />,
+ * the attr(ibute) is name, 'a' would be returned.
+ *
+ *	html	the HTML with attributes.
+ *	attr	the attribute to get.
+ * Returns the value of the attribute, or empty if it wasn't found.
+ */
+function extractAttribute(html, attr) {
+	if (!html || !attr) {return '';}
+	var exp = new RegExp(attr + '="[^"]*"', 'gi');
+	var m = html.match(exp);
+	if (m) { // attr="[value]"
+		return m[0].split('"')[1];
+	} else { // attr='[value]'
+		exp = new RegExp(attr + "='[^']*'", 'gi');
+		m = html.match(exp);
+		if (m) {
+			return m[0].split("'")[1];
+		}
+	}
+	
+	// No match
+	return '';
 }
 
 // Export the necessary functions

@@ -12,10 +12,10 @@ var url = require('url');
 var parser = require('./web-parser');
 
 // Constants
-var PORT = 8080; // the port the server is listening on
-var FAVICON = '../frontend/favicon.ico'; // path to the favicon
-var ERROR_404_FILE = "../frontend/error404.html"; // path to the 404 error page
-var URI_MAPPINGS = [ // the mapping from a URI to file for the server to send
+const PORT = 8080; // the port the server is listening on
+const FAVICON = '../frontend/favicon.ico'; // path to the favicon
+const ERROR_404_FILE = "../frontend/error404.html"; // path to the 404 error page
+const URI_MAPPINGS = [ // the mapping from a URI to file for the server to send
 	// Main pages
 	{"uri": "/", "file": "../frontend/index.html", "type": "text/html"},
 	{"uri": "/select-courses", "file": "../frontend/select-courses.html", "type": "text/html"},
