@@ -1,0 +1,17 @@
+extends layout
+block header
+	link(rel="stylesheet", href="/styles/programs.css")
+	script(src="/scripts/programs.js")
+block content
+	h1 Program
+	input(type="text", id="program", class="border-box", onkeyup="updateSearch();", spellcheck="false", autofocus)
+	div(id="program-result")
+	
+	table(id="courses" class="border-box")
+		td
+			p
+				i Enter your program above
+	div(id="added")
+	div(id="panel")
+		span(class="btn-clear", onclick="clearSelection();") Clear Selection
+		span(class="btn") Add Courses
