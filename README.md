@@ -1,7 +1,7 @@
 # CSCI 3230U - Final Project - UOIT Course Scheduler
-Members:
-- [Martin Tuzim](https://github.com/Nomulous)
+## Contributors
 - [Devon McGrath](https://github.com/DevonMcGrath)
+- [Martin Tuzim](https://github.com/Nomulous)
 
 ## Description
 One of the challenges students (especially first-years) face is creating a good schedule. It can be very time consuming to create a good schedule. This web application allows users to create schedules for a given semester and interactively select sections to include. The resulting schedule can be exported to an image (of the schedule) or a CSV file of section CRNs.
@@ -9,6 +9,10 @@ One of the challenges students (especially first-years) face is creating a good 
 ## Running the Project Locally
 ### Requirements:
 - Node.js (download [here](https://nodejs.org))
+  - Ensure node is added to your PATH
+- MongoDB (download [here](https://www.mongodb.com/))
+  - Ensure mongod is added to your PATH
+
 ### Steps to run:
 1. Start the Node server, in `/backend/` run `node server.js`
 1. In your browser, navigate to http://localhost:8080/
