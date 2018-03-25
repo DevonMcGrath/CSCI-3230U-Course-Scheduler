@@ -1,4 +1,4 @@
-body {margin: 0; padding: 20px 0 0 0; font-family: "Arial";}
+body {margin: 0; padding: 50px 0 0 0; font-family: "Arial";}
 h1 {text-align: center; color: #0078CA; text-shadow: 0 1px #003C71, 1px 0 #003C71;}
 input[type=text] {padding: 8px;}
 
@@ -12,7 +12,7 @@ input[type=text] {padding: 8px;}
 	padding: 8px;
 }
 
-.pre-nav {
+.pre-nav-op {
 	padding: 8px;
 	text-align: center;
 	display: none;
@@ -21,7 +21,7 @@ input[type=text] {padding: 8px;}
 	cursor: pointer;
 }
 
-.nav {
+.nav-op {
 	position: fixed;
 	left: 0;
 	top: 0;
@@ -36,20 +36,20 @@ input[type=text] {padding: 8px;}
 	background: linear-gradient(#003C71, #0078CA);
 }
 
-.nav li {
+.nav-op li {
 	list-style-type: none;
 	margin: 5px;
 	padding: 0;
 	display: inline-block;
 }
 
-.nav li a {
+.nav-op li a {
 	text-decoration: none;
 	color: white;
 	padding: 10px 8px;
 }
 
-.nav li a:hover {color: #EFEFFF; text-shadow: 0 0 3px black;}
+.nav-op li a:hover {color: #EFEFFF; text-shadow: 0 0 3px black;}
 
 .pre-nav:hover+.nav {
 	display: block;
