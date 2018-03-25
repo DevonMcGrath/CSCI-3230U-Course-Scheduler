@@ -9,12 +9,14 @@ One of the challenges students (especially first-years) face is creating a good 
 ## Running the Project Locally
 ### Requirements:
 - Node.js (download [here](https://nodejs.org))
-  - Ensure node is added to your PATH
+  - Ensure `node` and `npm` are added to your PATH
 - MongoDB (download [here](https://www.mongodb.com/))
-  - Ensure mongod is added to your PATH
+  - Ensure `mongod` is added to your PATH
 
 ### Steps to run:
-1. Start the Node server, in `/backend/` run `node server.js`
+1. In command prompt/terminal, navigate to `src/`
+1. Download dependencies with `npm install`
+1. Start the Node server with `node server.js`
 1. In your browser, navigate to http://localhost:8080/
 
 ## TODO
