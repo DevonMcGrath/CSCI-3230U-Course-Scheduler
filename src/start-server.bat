@@ -10,7 +10,19 @@ if not exist node_modules/ (
 	npm install
 )
 
-REM TODO: start the database
+REM Create database data directory if it does not exist
+if not exist data/ (
+	mkdir data
+)
+
+REM Start the database
+START mongod --dbpath .\data
+
+REM Sleep for some time to ensure database has started
+ECHO Waiting for database to start...
+ping -n 11 127.0.0.1 >nul
+ECHO Starting Node server...
+ECHO =======================
 
 REM Start the node server
 node server.js

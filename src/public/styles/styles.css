@@ -121,6 +121,12 @@ input[type=text] {padding: 8px;}
 	background: linear-gradient(#FF0000, #CF0000);
 }
 
+#user-info {
+	display: none;
+	padding: 8px;
+	background-color: lightblue;
+}
+
 @media screen and (max-width: 675px) {
 	body {padding: 0;}
 	.pre-nav-op {display: block;}

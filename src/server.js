@@ -6,9 +6,9 @@
 
 // Modules
 var express = require('express');
-var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
 var webParser = require('./web-parser');
+var session = require('./session');
 
 // Constants
 const PORT = process.env.PORT || 8080;
