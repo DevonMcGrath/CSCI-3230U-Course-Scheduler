@@ -14,8 +14,14 @@ One of the challenges students (especially first-years) face is creating a good 
   - Ensure `mongod` is added to your PATH
 
 ### Steps to run:
+#### Windows
+1. Run `src/start-server.bat`
+
+#### Manual
 1. In command prompt/terminal, navigate to `src/`
+1. Make a directory called `data`
 1. Download dependencies with `npm install`
+1. Start MongoDB with `mongod --dbpath .\data`
 1. Start the Node server with `node server.js`
 1. In your browser, navigate to http://localhost:8080/
 
