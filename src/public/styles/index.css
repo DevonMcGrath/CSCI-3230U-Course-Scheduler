@@ -14,7 +14,7 @@ body {
     display: list-item;
 } 
 #introduction {
-    background: url("/imgs/campusshot.jpg") no-repeat center center fixed;
+    background: url("/images/campus_shot.jpg") no-repeat center center fixed;
     display: table;
     height: 100vh;
     position: relative;
@@ -29,7 +29,7 @@ body {
 #aboutus {
     height: 95vh;
     padding-top: 40px;
-    background: url("/imgs/library.jpg") no-repeat center center fixed;
+    background: url("/images/library.jpg") no-repeat center center fixed;
     
 }
 .sidenav {
@@ -37,7 +37,7 @@ body {
     height: 100%;
     width: 0;
     position: absolute;
-    z-index: 1;
+    z-index: 101;
     top: 0;
     left: 0;
     background-color: #111;

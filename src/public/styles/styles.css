@@ -12,6 +12,8 @@ input[type=text] {padding: 8px;}
 	padding: 8px;
 }
 
+.pre-nav-op, .nav-op {z-index: 100;}
+
 .pre-nav-op {
 	padding: 8px;
 	text-align: center;
@@ -51,11 +53,11 @@ input[type=text] {padding: 8px;}
 
 .nav-op li a:hover {color: #EFEFFF; text-shadow: 0 0 3px black;}
 
-.pre-nav:hover+.nav {
+.pre-nav-op:hover+.nav-op {
 	display: block;
 }
 
-.nav:hover {display: block;}
+.nav-op:hover {display: block;}
 
 .btn, .btn-simple, .btn-clear {
 	display: inline-block;
@@ -121,7 +123,7 @@ input[type=text] {padding: 8px;}
 
 @media screen and (max-width: 675px) {
 	body {padding: 0;}
-	.pre-nav {display: block;}
-	.nav {position: relative; display: none;}
-	.nav li {display: block; margin: 20px 0;}
+	.pre-nav-op {display: block;}
+	.nav-op {position: relative; display: none;}
+	.nav-op li {display: block; margin: 20px 0;}
 }
