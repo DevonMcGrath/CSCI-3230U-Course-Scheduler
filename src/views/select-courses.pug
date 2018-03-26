@@ -1,5 +1,18 @@
 extends layout
 block header
+	link(rel="stylesheet", href="/styles/select-courses.css")
+	link(rel="stylesheet", href="/styles/styles.css")
 
+
+block precontent
 block content
-	p TODO: implement page
+	h1 Here are your selected courses
+	div(id="selected-courses" class="border-box text-vcenter")
+		p Course 1
+		p Course 2
+		p Course 3
+	h1 Please select any electives you want (Either search by Name or Course Code)
+	div(id="elective-courses")
+		p Course 1
+		p Course 2
+		p Course 3
