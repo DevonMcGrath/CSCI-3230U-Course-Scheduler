@@ -27,6 +27,17 @@ mongoose.connect(DB, function(err) {
 	}
 });
 
+// Database tables
+var User = mongoose.model('users', new Schema({
+		sid: String, term: String, sections: [
+			{crn: Number, selected: Boolean}
+		]
+	}, {collection: 'users'}));
+var Section = mongoose.model('sections', new Schema({
+	crn: Number, title: String, remaining: Number, type: String, campus: String,
+	room: String, lastUpdated: Date, subject: String, code: String, term: String
+	}, {collection: 'sections'}));
+
 /**
  * Saves session info in the session cookie.
  *	req		the HTTP request
@@ -36,8 +47,6 @@ mongoose.connect(DB, function(err) {
 function setSession(req, res, data) {
 	var cookies = new Cookies(req, res);
 	cookies.set(SESSION_COOKIE, data);
-	res.writeHead(200, {'Content-Type': 'text/plain'});
-	res.end('1');
 }
 
 /**
@@ -49,11 +58,39 @@ function getSession(req, res) {
 	var cookies = new Cookies(req, res);
 	var session = cookies.get(SESSION_COOKIE);
 	session = session? session : '';
-	res.writeHead(200, {'Content-Type': 'text/plain'});
-	res.end(session);
 	return session;
+}
+
+/**
+ * Generates a new session ID, puts it in the database, and returns it.
+ */
+function genID() {
+	var id = uuid();
+	
+	// Add the new user to the database
+	var newUser = new User({sid: id, term: 'Not selected'});
+	newUser.save(function(err) {
+		
+		// Insert failed
+		if (err) {
+			console.error('DB ERROR: failed to insert user: ' + err);
+		}
+	});
+	
+	return id;
+}
+
+/**
+ * Checks if the specified user ID is in the database.
+ *	id			the ID to check for
+ *	callback	the callback function 
+ */
+function userExists(id, callback) {
+	User.find({sid: id}).then(function(results) {callback(results.length > 0);});
 }
 
 // Export the necessary functions
 module.exports.setSession = setSession;
 module.exports.getSession = getSession;
+module.exports.genID = genID;
+module.exports.userExists = userExists;

@@ -69,6 +69,69 @@ app.get('/get-programs', function(req, res) {
 	webParser.getPrograms(req, res);
 });
 
+// For getting/setting user info
+app.post('/user', function(req, res) {
+	
+	// Get the user ID
+	var id = session.getSession(req, res);
+	if (id == '') {
+		
+		// Generate a new user ID
+		console.log('Creating new user...');
+		id = session.genID();
+		session.setSession(req, res, id);
+		console.log('Done.');
+		
+		// Handle the actual command
+		handleUserCmd(req, res);
+	}
+	
+	// Check the database
+	else {
+		session.userExists(id, function(exists) {
+			
+			// Generate a new user ID if the user doesn't exist
+			if (!exists) {
+				console.log('Creating new user...');
+				id = session.genID();
+				session.setSession(req, res, id);
+				console.log('Done.');
+			}
+			
+			// Handle the actual command
+			handleUserCmd(req, res);
+		});
+	}
+});
+
+/**
+ * Handles a 
+ */
+function handleUserCmd(req, res) {
+	
+	var cmd = req.body.cmd;
+	
+	// Get user info
+	if (cmd == 'GETINFO') {
+		
+		// TODO
+		res.status(200).send('impl_required\tcourse 1\tcourse 2\tcourse 3');
+	}
+	
+	// Remove a course
+	else if (cmd == 'REMCOURSE') {
+		
+		// TODO
+		var course = req.body.course;
+		res.status(418).send('Not implemented yet');
+	}
+	
+	// 400 Bad Request: Not sure what to do
+	else {
+		res.status(400).send('undefined');
+	}
+}
+
 // >>>>>>>>>>>>>>>>>>>>>>>> ERROR PAGES
 
 // 404 Error handling
