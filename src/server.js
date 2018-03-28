@@ -83,7 +83,7 @@ app.post('/user', function(req, res) {
 		console.log('Done.');
 		
 		// Handle the actual command
-		handleUserCmd(req, res);
+		handleUserCmd(req, res, id);
 	}
 	
 	// Check the database
@@ -99,7 +99,7 @@ app.post('/user', function(req, res) {
 			}
 			
 			// Handle the actual command
-			handleUserCmd(req, res);
+			handleUserCmd(req, res, id);
 		});
 	}
 });
@@ -107,15 +107,15 @@ app.post('/user', function(req, res) {
 /**
  * Handles a 
  */
-function handleUserCmd(req, res) {
+function handleUserCmd(req, res, id) {
 	
 	var cmd = req.body.cmd;
 	
 	// Get user info
 	if (cmd == 'GETINFO') {
-		
-		// TODO
-		res.status(200).send('impl_required\tcourse 1\tcourse 2\tcourse 3');
+		session.getInfo(id, function(info) {
+			res.send(info);
+		});
 	}
 	
 	// Remove a course

@@ -31,12 +31,25 @@ mongoose.connect(DB, function(err) {
 var User = mongoose.model('users', new Schema({
 		sid: String, term: String, sections: [
 			{crn: Number, selected: Boolean}
-		]
-	}, {collection: 'users'}));
+		], courses: [{subject: String, code: String}], lastAccessed: Date
+}, {collection: 'users'}));
 var Section = mongoose.model('sections', new Schema({
 	crn: Number, title: String, remaining: Number, type: String, campus: String,
 	room: String, lastUpdated: Date, subject: String, code: String, term: String
-	}, {collection: 'sections'}));
+}, {collection: 'sections'}));
+var Course = mongoose.model('courses', new Schema({
+	subject: String, code: String, lastUpdated: Date
+}, {collection: 'courses'}));
+
+/**
+ * Checks if something should be updated based on the date it was entered and
+ * the current date.
+ *	date1		the date to check against
+ *	maxDeltaMs	the maximum number of milliseconds that the date is valid for
+ */
+function needsUpdate(date, maxDeltaMs) {
+	return Math.abs(new Date() - date) > maxDeltaMs;
+}
 
 /**
  * Saves session info in the session cookie.
@@ -68,7 +81,8 @@ function genID() {
 	var id = uuid();
 	
 	// Add the new user to the database
-	var newUser = new User({sid: id, term: 'Not selected'});
+	var newUser = new User({sid: id, term: 'Not selected', courses: [],
+		lastAccessed: new Date()});
 	newUser.save(function(err) {
 		
 		// Insert failed
@@ -86,7 +100,43 @@ function genID() {
  *	callback	the callback function 
  */
 function userExists(id, callback) {
-	User.find({sid: id}).then(function(results) {callback(results.length > 0);});
+	User.find({sid: id}).then(function(results) {
+		var found = results.length > 0;
+		
+		// If something was found, update the last accessed time
+		if (found) {
+			User.update({sid: id}, {lastAccessed: new Date()},
+				{multi: false}, function() {});
+		}
+		
+		// Tell the callback if something was found
+		callback(found);
+	});
+}
+
+/**
+ * Gets the info of a user in tab-separated format with term	<courses...>
+ *	id			the id of the user
+ *	callback	the callback function to receive the string of info
+ */
+function getInfo(id, callback) {
+	User.find({sid: id}).then(function(results) {
+		var found = results.length > 0;
+		var info = '';
+		
+		// If something was found, create the info
+		if (found) {
+			info = results[0].term;
+			var courses = results[0].courses, n = courses.length? courses.length : 0;
+			for (var i = 0; i < n; i ++) {
+				var c = courses[i];
+				info = info + '\t' + c.subject + ' ' + c.code;
+			}
+		}
+		
+		// Call the callback with the info
+		callback(info);
+	});
 }
 
 // Export the necessary functions
@@ -94,3 +144,4 @@ module.exports.setSession = setSession;
 module.exports.getSession = getSession;
 module.exports.genID = genID;
 module.exports.userExists = userExists;
+module.exports.getInfo = getInfo;
