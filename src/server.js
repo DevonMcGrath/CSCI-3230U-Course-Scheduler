@@ -9,6 +9,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var webParser = require('./web-parser');
 var session = require('./session');
+var System = require('./utils');
 
 // Constants
 const PORT = process.env.PORT || 8080;
@@ -26,9 +27,11 @@ app.set('view engine', 'pug');
 /* ----------------------------- BEGIN ROUTES ----------------------------- */
 app.use(function(req, res, next) {
 	var now = new Date();
-	console.log(now.toLocaleString() + ':');
-	console.log('\tremote address: "' + req.connection.remoteAddress + '"');
-	console.log('\t   request for: "' + req.url + '"');
+	System.out.println(now.toLocaleString() + ':', System.FG['bright-magenta']);
+	System.out.println('\tremote address: "' + req.connection.remoteAddress + '"',
+		System.FG['bright-cyan']);
+	System.out.println('\t   request for: "' + req.url + '"',
+		System.FG['bright-cyan']);
 	next();
 });
 
@@ -79,10 +82,10 @@ app.post('/user', function(req, res) {
 	if (id == '') {
 		
 		// Generate a new user ID
-		console.log('Creating new user...');
+		System.out.println('Creating new user...', System.FG['bright-yellow']);
 		id = session.genID();
 		session.setSession(req, res, id);
-		console.log('Done.');
+		System.out.println('Done.', System.FG['bright-yellow']);
 		
 		// Handle the actual command
 		handleUserCmd(req, res, id);
@@ -94,10 +97,10 @@ app.post('/user', function(req, res) {
 			
 			// Generate a new user ID if the user doesn't exist
 			if (!exists) {
-				console.log('Creating new user...');
+				System.out.println('Creating new user...', System.FG['bright-yellow']);
 				id = session.genID();
 				session.setSession(req, res, id);
-				console.log('Done.');
+				System.out.println('Done.', System.FG['bright-yellow']);
 			}
 			
 			// Handle the actual command
@@ -107,7 +110,7 @@ app.post('/user', function(req, res) {
 });
 
 /**
- * Handles a 
+ * Handles a user command.
  */
 function handleUserCmd(req, res, id) {
 	
@@ -146,5 +149,5 @@ app.use(function(req, res) {
 
 // Start listening
 app.listen(PORT, function() {
-	console.log('Node server listening on port: ' + PORT);
+	System.out.println('Node server listening on port: ' + PORT, System.FG['bright-magenta']);
 });

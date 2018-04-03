@@ -8,22 +8,23 @@ var http = require('http');
 var mongoose = require('mongoose');
 var Cookies = require('cookies');
 var uuid = require('uuid/v1');
+var System = require('./utils');
 
 // Constants
 const SESSION_COOKIE = 'uoit-course-sch-session';
 const DB = 'mongodb://localhost:27017/uoit-course-scheduler';
 
 // Database configuration
-console.log('Connecting to database...');
+System.out.println('Connecting to database...', System.FG['bright-yellow']);
 var Schema = mongoose.Schema;
 mongoose.Promise = global.Promise;
 mongoose.connect(DB, function(err) {
 	if (err) {
-		console.error('Failed to connect to database.');
-		console.log('Please start the database.');
+		System.err.println('Failed to connect to database.');
+		System.out.println('Please start the database.');
 		process.exit(1); // TERMINATE
 	} else {
-		console.log('Connected to database.');
+		System.out.println('Connected to database.', System.FG['bright-yellow']);
 	}
 });
 

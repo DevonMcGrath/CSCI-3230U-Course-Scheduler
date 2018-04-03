@@ -8,6 +8,7 @@
 var http = require('http');
 var url = require('url');
 var querystring = require('querystring');
+var System = require('./utils');
 
 // Main pages
 var TERM_PAGE = {
@@ -72,7 +73,7 @@ function getWebPageData(domain, uri, callback, method, data) {
 	});
 	req.on('error', function(err) {
 		var msg = 'Error: ' + err.message;
-		console.log(msg);
+		System.err.println(msg);
 		callback(msg);
 	});
 	
@@ -95,7 +96,7 @@ function getTerms(req, res) {
 	
 	// Check if the terms have already been requested before
 	if (TERM_PAGE.terms.length) {
-		console.log('> Sending cached terms.');
+		System.out.println('> Sending cached terms.', System.FG['bright-green']);
 		
 		// Create the text
 		var v = TERM_PAGE.terms, n = v.length, txt = '';
@@ -147,7 +148,7 @@ function getTerms(req, res) {
 					}
 				}
 			}
-		} catch (e) {console.log(e);}
+		} catch (e) {System.err.println(e);}
 		TERM_PAGE.form = form;
 		
 		// Send the response text
@@ -231,7 +232,7 @@ function getPrograms(req, res) {
 				parts = data.split(/<strong>Bachelor of Applied Science \(Honours\)<\/strong><\/p>/i);
 				data = parts[parts.length - 1];
 				data = data.split(/<strong>Co-operative Education<\/strong>/i)[0];
-			} catch (e) {console.log(e);}
+			} catch (e) {System.err.println(e);}
 			data = data.replace(/&#8211;/g, '-');
 			parts = data.split(/<a href="/i);
 			
@@ -244,7 +245,7 @@ function getPrograms(req, res) {
 				try {
 					p.program = d.split('>')[1].split('<')[0];
 					progLinks.push(p);
-				} catch (e) {console.log(e);}
+				} catch (e) {System.err.println(e);}
 			}
 			sendProgramList(res);
 		}, 'GET');
@@ -365,7 +366,7 @@ function getSections(term, subject, code, callback) {
 					s.title = parts[0];
 				}
 			} catch (err) { // error parsing; not regular format
-				console.error('web-parser.getSections: error parsing section');
+				System.err.println('web-parser.getSections: error parsing section');
 			}
 			
 			// Get the schedule type
