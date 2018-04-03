@@ -3,7 +3,7 @@
  * Description: This script contains functions commonly used in the web application.
  */
 
-var USER_URI = '/user', user = null;
+var USER_URI = '/user', user = null, pageInit = null;
 
 function User(term, courses) {
 	this.term = term;
@@ -64,8 +64,13 @@ function postData(url, data, callback) {
 function removeCourse(name) {
 	
 	// Tell the server to remove the course
-	name = name? encodeURIComponent(name) : '';
-	postData(USER_URI, 'cmd=REMCOURSE&course=' + name, function(data, err) {
+	name = name? name : '';
+	var term = user.term? encodeURIComponent(user.term) : '';
+	var parts = name.split(' ');
+	var subject = encodeURIComponent(parts[0]);
+	var code = parts[1]? encodeURIComponent(parts[1]) : '';
+	postData(USER_URI, 'cmd=REMCOURSE&term=' + term + '&subject=' + subject + '&code=' + code,
+	function(data, err) {
 		
 		// There was some error
 		if (err) {
@@ -76,6 +81,24 @@ function removeCourse(name) {
 		else {
 			
 		}
+	});
+}
+
+/** Adds a course to the user's selection. */
+function addCourse(term, name) {
+	
+	// Get the proper fields
+	name = name? name : '';
+	term = term? encodeURIComponent(term) : '';
+	var parts = name.split(' ');
+	var subject = encodeURIComponent(parts[0]);
+	var code = parts[1]? encodeURIComponent(parts[1]) : '';
+	
+	postData(USER_URI, 'cmd=ADDCOURSE&term=' + term + '&subject=' + subject + '&code=' + code,
+	function(data, err) {
+		
+		// TODO handle the result
+		console.log(data);
 	});
 }
 
@@ -100,5 +123,15 @@ $(document).ready(function() {
 		
 		user = new User(res[0], courses);
 		user.updateInfo();
+		
+		/* ------------------------ COURSE ADDITION TEST CODE ---- */
+		addCourse('201701', 'CSCI 1061U');//FIXME remove
+		addCourse('201701', 'CSCI 2050U');//FIXME remove
+		/////////////////////////////////////////////////////////////
+		
+		// Call the page init function (if it exists)
+		if (pageInit) {
+			pageInit();
+		}
 	});
 });

@@ -27,11 +27,14 @@ app.set('view engine', 'pug');
 /* ----------------------------- BEGIN ROUTES ----------------------------- */
 app.use(function(req, res, next) {
 	var now = new Date();
+	
+	// Print some logging info
 	System.out.println(now.toLocaleString() + ':', System.FG['bright-magenta']);
 	System.out.println('\tremote address: "' + req.connection.remoteAddress + '"',
 		System.FG['bright-cyan']);
 	System.out.println('\t   request for: "' + req.url + '"',
 		System.FG['bright-cyan']);
+	
 	next();
 });
 
@@ -115,6 +118,7 @@ app.post('/user', function(req, res) {
 function handleUserCmd(req, res, id) {
 	
 	var cmd = req.body.cmd;
+	System.out.println('\t       command: "' + cmd + '"', System.FG['bright-cyan']);
 	
 	// Get user info
 	if (cmd == 'GETINFO') {
@@ -127,8 +131,25 @@ function handleUserCmd(req, res, id) {
 	else if (cmd == 'REMCOURSE') {
 		
 		// TODO
-		var course = req.body.course;
+		// Get the relevant fields
+		var term = req.body.term;
+		var subject = req.body.subject;
+		var code = req.body.code;
 		res.status(418).send('Not implemented yet');
+	}
+	
+	// Add a course
+	else if (cmd == 'ADDCOURSE') {
+		
+		// Get the relevant fields
+		var term = req.body.term;
+		var subject = req.body.subject;
+		var code = req.body.code;
+		System.out.println('\t              > term="' + term + '", subject="' +
+			subject + '", code="' + code + '"', System.FG['bright-green']);
+	
+		// Get the session to handle the request
+		session.addCourse(req, res, term, subject, code, id);
 	}
 	
 	// 400 Bad Request: Not sure what to do

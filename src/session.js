@@ -8,11 +8,13 @@ var http = require('http');
 var mongoose = require('mongoose');
 var Cookies = require('cookies');
 var uuid = require('uuid/v1');
+var webParser = require('./web-parser');
 var System = require('./utils');
 
 // Constants
 const SESSION_COOKIE = 'uoit-course-sch-session';
 const DB = 'mongodb://localhost:27017/uoit-course-scheduler';
+const MAX_SECTION_AGE_MS = 1 * 24 * 60 * 60 * 1000; // i.e. 1 day
 
 // Database configuration
 System.out.println('Connecting to database...', System.FG['bright-yellow']);
@@ -32,18 +34,15 @@ mongoose.connect(DB, function(err) {
 var User = mongoose.model('users', new Schema({
 		sid: String, term: String, sections: [
 			{crn: Number, selected: Boolean}
-		], courses: [{subject: String, code: String}], lastAccessed: Date
+		], courses: [{subject: String, code: String, term: String}], lastAccessed: Date
 }, {collection: 'users'}));
 var Section = mongoose.model('sections', new Schema({
 	crn: Number, title: String, remaining: Number, type: String, campus: String,
 	room: String, lastUpdated: Date, subject: String, code: String, term: String,
 	instructor: String, instructionMethod: String, linkedSections: [{crn: Number}],
-	times: [{start: Date, end: Date, day: String, location: String, date: Date,
-	scheduleType: String, instructor: String}]
+	times: [{start: Number, end: Number, day: String, location: String,
+			startDate: Date, endDate: Date, scheduleType: String, instructor: String}]
 }, {collection: 'sections'}));
-var Course = mongoose.model('courses', new Schema({
-	subject: String, code: String, lastUpdated: Date
-}, {collection: 'courses'}));
 
 /**
  * Checks if something should be updated based on the date it was entered and
@@ -91,7 +90,7 @@ function genID() {
 		
 		// Insert failed
 		if (err) {
-			console.error('DB ERROR: failed to insert user: ' + err);
+			System.err.println('DB ERROR: failed to insert user: ' + err);
 		}
 	});
 	
@@ -114,7 +113,7 @@ function userExists(id, callback) {
 		}
 		
 		// Tell the callback if something was found
-		callback(found);
+		callback(found? results[0] : false);
 	});
 }
 
@@ -143,9 +142,145 @@ function getInfo(id, callback) {
 	});
 }
 
+/**
+ * Adds a course to the specified user selection.
+ *
+ *	req		the HTTP request.
+ *	res		the HTTP response.
+ *	term	the term (e.g. 201801).
+ *	subject	the course subject (e.g. CSCI).
+ *	code	the course code (e.g. 1061U).
+ *	id		the user ID to update.
+ */
+function addCourse(req, res, term, subject, code, id) {
+	
+	// Check if the user exists
+	userExists(id, function(usr) {
+		
+		// User does not exist
+		if (!usr) {
+			System.err.println('\t              > cannot find user');
+			res.status(500).send('');
+			return false;
+		}
+		
+		// Check if they already have the course added
+		var found = false, n = usr.courses.length;
+		for (var i = 0; i < n; i ++) {
+			var c = usr.courses[i];
+			if (c.term == term && c.subject == subject && c.code == code) {
+				found = true;
+				break;
+			}
+		}
+		if (found) {
+			System.out.println('\t              > user already added ' + subject + ' ' + code,
+				System.FG['bright-yellow']);
+			res.send('1'); // no update
+			return true;
+		}
+		
+		// Check database for course
+		Section.find({term: term, subject: subject, code: code}).then(function(results) {
+			
+			// Sections do not exist
+			if (results.length == 0) {
+				findSections(req, res, term, subject, code, usr);
+			}
+			
+			// Add the course to the user
+			else {
+				
+				System.out.println('\t              > adding ' + subject + ' ' + code + ' from cache',
+					System.FG['bright-green']);
+				
+				// Update the user and send the result
+				if (!usr.courses) {usr.courses = [];}
+				usr.courses.push({term: term, subject: subject, code: code});
+				User.update({sid: id}, {courses: usr.courses},
+					{multi: false}, function() {});
+				res.send(term + '\t' + subject + '\t' + code);
+			}
+		});
+	});
+}
+
+/**
+ * Finds the course specified and adds it to the database. Adds the course to
+ * the user's courses if it successfully finds the course.
+ *
+ *	req		the HTTP request.
+ *	res		the HTTP response.
+ *	term	the term (e.g. 201801).
+ *	subject	the course subject (e.g. CSCI).
+ *	code	the course code (e.g. 1061U).
+ *	usr		the user object to update.
+ */
+function findSections(req, res, term, subject, code, usr) {
+	
+	// Make a request to the web parser
+	webParser.getSections(term, subject, code, function(sections) {
+		
+		// No sections found
+		if (!sections || sections.length == 0) {
+			System.err.println('\t              > cannot find ' + subject + ' ' +
+				code + ' for term ' + term);
+			res.send('2'); // bad search
+			return false;
+		}
+		
+		// Check for a result that matches the search (i.e. just one course)
+		var found = false, n = sections.length;
+		for (var i = 0; i < n; i ++) {
+			var s = sections[i];
+			if (s.term == term && s.subject == subject && s.code == code) {
+				found = true;
+				break;
+			}
+		}
+		
+		// Send the proper result
+		if (found) {
+			if (!usr.courses) {usr.courses = [];}
+			usr.courses.push({term: term, subject: subject, code: code});
+			User.update({sid: usr.id}, {courses: usr.courses},
+				{multi: false}, function() {});
+			res.send(term + '\t' + subject + '\t' + code);
+		} else {
+			res.send('3'); // more than one match, please narrow search
+		}
+		
+		// Add the sections to the database
+		System.out.println('DB: inserting sections...', System.FG['bright-yellow']);
+		Section.collection.insert(sections, function(err) {
+			if (err) {
+				System.err.println('DB ERROR: failed to insert new sections');
+			} else {
+				System.out.println('DB: ' + sections.length + ' sections inserted.',
+					System.FG['bright-yellow']);
+			}
+		});
+	});
+}
+
+/**
+ * Sends the sections as JSON to the client.
+ *
+ *	req			the HTTP request.
+ *	res			the HTTP response.
+ *	sections	the sections to send.
+ */
+function sendSections(req, res, sections) {
+	
+	// Just send the sections as JSON to make parsing on the client easy
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify(sections));
+}
+
 // Export the necessary functions
 module.exports.setSession = setSession;
 module.exports.getSession = getSession;
 module.exports.genID = genID;
 module.exports.userExists = userExists;
 module.exports.getInfo = getInfo;
+module.exports.addCourse = addCourse;

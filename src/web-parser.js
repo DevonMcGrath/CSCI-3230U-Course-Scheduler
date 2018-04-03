@@ -327,6 +327,10 @@ function getSections(term, subject, code, callback) {
 		return false;
 	}
 	
+	// Form data to post to mycampus
+	term = encodeURIComponent(term);
+	subject = encodeURIComponent(subject);
+	code = encodeURIComponent(code);
 	var formData = 'TRM=U&term_in='+term+'&sel_subj=dummy&sel_day=dummy'
 				+ '&sel_schd=dummy&sel_insm=dummy&sel_camp=dummy'
 				+ '&sel_levl=dummy&sel_sess=dummy&sel_instr=dummy'
@@ -474,8 +478,6 @@ function updateSectionHTML(html) {
  *	sectionHtml	the HTML for a single section.
  */
 function getMeetTimes(sectionHtml) {
-	//{start: Date, end: Date, day: String, location: String, date: Date,
-	//scheduleType: String, instructor: String};
 	
 	var times = [];
 	if (!sectionHtml) {return times;}
@@ -491,8 +493,8 @@ function getMeetTimes(sectionHtml) {
 	// Get each meeting time
 	var parts = sectionHtml.split(/<\/TR>\n/i), n = parts.length;
 	for (var i = 1; i < n; i ++) {
-		var time = {start: String, end: String, day: 'X', location: 'TBA',
-			startDate: Date, endDate: Date, scheduleType: 'Lecture', instructor: 'TBA'};
+		var time = {start: 0, end: 0, day: 'X', location: 'TBA',
+			startDate: null, endDate: null, scheduleType: 'Lecture', instructor: 'TBA'};
 
 		// Break it into lines
 		var lines = parts[i].split('\n');
@@ -507,12 +509,35 @@ function getMeetTimes(sectionHtml) {
 		time.instructor = lines[7];
 		
 		// Get the date info
-		var startEnd = lines[2].split(' - ');
-		time.start = startEnd[0];
-		time.end = startEnd[1];
-		startEnd = lines[5].split(' - ');
+		var startEnd = lines[5].split(' - ');
 		time.startDate = new Date(startEnd[0]);
 		time.endDate = new Date(startEnd[1]);
+		startEnd = lines[2].split(' - ');
+		time.start = startEnd[0];
+		time.end = startEnd[1];
+		for (var j = 0; j < 2; j ++) {
+			
+			// Determine morning/afternoon
+			var t = startEnd[i];
+			if (!t) {time.end = time.start; break;}
+			var hours = t.search(/pm/i) > 0? 12 : 0;
+			t = t.split(' ')[0]; // remove am/pm
+			
+			// Determine hours and minutes
+			var timeParts = t.split(':');
+			timeParts[0] = parseInt(timeParts[0]) % 12;
+			timeParts[1] = parseInt(timeParts[1]);
+			if (!isNaN(timeParts[0]) && !isNaN(timeParts[1])) {
+				hours += timeParts[0];
+				var mins = timeParts[1];
+				var totalMins = mins + 60 * hours;
+				if (j == 0) {
+					time.start = totalMins;
+				} else {
+					time.end = totalMins;
+				}
+			}
+		}
 		
 		times.push(time);
 	}
