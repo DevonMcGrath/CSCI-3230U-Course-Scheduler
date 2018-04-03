@@ -26,7 +26,9 @@ app.set('view engine', 'pug');
 /* ----------------------------- BEGIN ROUTES ----------------------------- */
 app.use(function(req, res, next) {
 	var now = new Date();
-	console.log(now.toLocaleString() + ': request for "' + req.url + '"');
+	console.log(now.toLocaleString() + ':');
+	console.log('\tremote address: "' + req.connection.remoteAddress + '"');
+	console.log('\t   request for: "' + req.url + '"');
 	next();
 });
 

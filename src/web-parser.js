@@ -312,6 +312,214 @@ function getCourses(html, res) {
 }
 
 /**
+ * Gets the sections for the specified course and term.
+ *
+ *	term		the term (e.g. 201701)
+ *	subject		the course subject (e.g. CSCI)
+ *	code		the code for the course (e.g. 1061U)
+ *	callback	the callback function to receive the parsed sections
+ */
+function getSections(term, subject, code, callback) {
+	
+	// Check that there is a callback
+	if (!callback) {
+		return false;
+	}
+	
+	var formData = 'TRM=U&term_in='+term+'&sel_subj=dummy&sel_day=dummy'
+				+ '&sel_schd=dummy&sel_insm=dummy&sel_camp=dummy'
+				+ '&sel_levl=dummy&sel_sess=dummy&sel_instr=dummy'
+				+ '&sel_ptrm=dummy&sel_attr=dummy&sel_subj='+subject
+				+ '&sel_crse='+code+'&sel_title=&sel_schd=%25'
+				+ '&sel_insm=%25&sel_from_cred=&sel_to_cred=&sel_camp=%25'
+				+ '&begin_hh=0&begin_mi=0&begin_ap=a&end_hh=0&end_mi=0'
+				+ '&end_ap=a';
+	
+	// Make the POST request
+	getWebPageData('ssbp.mycampus.ca', '/prod_uoit/bwckschd.p_get_crse_unsec', function(data) {
+		
+		var sections = [];
+		
+		// Parse the sections one at a time
+		data = updateSectionHTML(data);
+		var rawSections = data.split(/"ddheader"/gi), n = rawSections.length;
+		for (var i = 1; i < n; i ++) {
+			
+			var sectionHtml = rawSections[i];
+			
+			// Create the session object
+			var s = {crn: 0, title: 'Unavailable', remaining: 0, type: 'Other', campus: 'UOIT - Other',
+				room: 'NA', lastUpdated: new Date(), subject: 'TBD', code: 'TBD', term: term,
+				instructor: 'TBA', instructionMethod: 'TBD', linkedSections: [], times: []};
+			
+			// Get the title, subject, code, CRN
+			var parts;
+			try {
+				parts = sectionHtml.split('<', 2)[0].split('>');
+				if (parts.length > 1) {
+					parts = parts[1].split(/ - /gi);
+					s.crn = parseInt(parts[parts.length-3]);
+					var course = parts[parts.length-2].split(' ');
+					s.subject = course[0];
+					s.code = course[1];
+					s.title = parts[0];
+				}
+			} catch (err) { // error parsing; not regular format
+				console.error('web-parser.getSections: error parsing section');
+			}
+			
+			// Get the schedule type
+			if (sectionHtml.indexOf(/<BR>\nLecture/i) >= 0) {
+				s.type = 'Lecture';
+			} else if (sectionHtml.indexOf(/<BR>\nTutorial/i) >= 0) {
+				s.type = 'Tutorial';
+			} else if (sectionHtml.indexOf(/<BR>\nLab/i) >= 0) {
+				s.type = 'Lab';
+			} else if (sectionHtml.indexOf(/<BR>\nLecture & Lab/i) >= 0) {
+				s.type = 'Lecture & Lab';
+			} else if (sectionHtml.indexOf(/<BR>\nThesis\/Project/i) >= 0) {
+				s.type = 'Thesis/Project';
+			}
+			
+			// Get the location (campus)
+			if (sectionHtml.search(/L\0UOIT - North Oshawa/i) >= 0) {
+				s.campus = 'UOIT - North Oshawa';
+			} else if (sectionHtml.search(/L\0UOIT- Downtown Oshawa/i) >= 0) {
+				s.campus = 'UOIT - Downtown Oshawa';
+			} else if (sectionHtml.search(/L\0UOIT-Georgian/i) >= 0) {
+				s.campus = 'UOIT - Georgian Oshawa';
+			} else if (sectionHtml.search(/L\0UOIT-Online/i) >= 0) {
+				s.campus = 'UOIT - Online';
+			}
+			
+			// Get the instruction method
+			if (sectionHtml.search(/<BR>\nIn-class Delivery/i) >= 0) {
+				s.instructionMethod = 'In-class Delivery';
+			} else if (sectionHtml.search(/<BR>\nIn-class & Online Delivery/i) >= 0) {
+				s.instructionMethod = 'In-class & Online Delivery';
+			} else if (sectionHtml.search(/<BR>\nOffsite/i) >= 0) {
+				s.instructionMethod = 'Offsite';
+			} else if (sectionHtml.search(/<BR>\nVirtual Meet Times/i) >= 0) {
+				s.instructionMethod = 'Virtual Meet Times';
+			} else if (sectionHtml.search(/<BR>\nSection is Fully Online/i) >= 0) {
+				s.instructionMethod = 'Online';
+			}
+			
+			// Get the capacity
+			parts = sectionHtml.split('@\0', 5);
+			if (parts.length > 3) {
+				s.remaining = parseInt(parts[3].split('<', 2)[0].replace(/>/g, ''));
+			}
+			
+			// Get the instructor
+			parts = sectionHtml.split('I\0', 3);
+			if (parts.length > 1) {
+				s.instructor = parts[1].split('\n', 2)[0];
+			}
+			
+			// Get the linked sections
+			if (sectionHtml.search(/Show linked Section(s)<\/TD>\n/i) >= 0) {
+				sectionHtml = sectionHtml.replace(/\( CRN: /gi, '&\0');
+				parts = sectionHtml.split('&\0');
+				var n = parts.length;
+				for (var i = 1; i < n; i ++) {
+					var value = parseInt(parts[i].split(' ', 2)[0]);
+					if (!isNaN(value)) {
+						linkedSections.push(value);
+					}
+				}
+			}
+			
+			// Get the meet times
+			s.times = getMeetTimes(sectionHtml);
+			
+			sections.push(s);
+		}
+		
+		// Handle the results
+		callback(sections);
+	}, 'POST', formData);
+}
+
+/**
+ * Converts HTML representing course sections (from mycampus) to an
+ * easier-to-parse format.
+ *
+ *	html	the HTML to update from mycampus.
+ */
+function updateSectionHTML(html) {
+	if (!html) {return '';}
+	
+	// Remove non-essential HTML for parsing the sections
+	var parts = html.split('"datadisplaytable"');
+	if (parts.length < 2) { // not a valid page with sections from mycampus
+		return '';
+	}
+	html = parts[1];
+	
+	// Shorten the HTML and make parsing easier
+	html = html.replace(/<abbr[^>]+>P<\/abbr>/gi, 'P');
+	html = html.replace(/<abbr[^>]+>TBA<\/abbr>/gi, 'TBA');
+	html = html.replace(/Instructors: <\/SPAN>/gi, 'I\0'); // instructors
+	html = html.replace(/<b><\/b><\/SPAN>/, 'L\0'); // location
+	html = html.replace(/"dbdefault"/gi, '@\0'); // seats/meet times
+	
+	return html;
+}
+
+/**
+ * Gets the individual meet times associated with a section.
+ *
+ *	sectionHtml	the HTML for a single section.
+ */
+function getMeetTimes(sectionHtml) {
+	//{start: Date, end: Date, day: String, location: String, date: Date,
+	//scheduleType: String, instructor: String};
+	
+	var times = [];
+	if (!sectionHtml) {return times;}
+	var pos = sectionHtml.search(/Scheduled Meeting Times<\/caption>\n/i);
+	if (pos < 0) {
+		return times;
+	}
+	
+	// Adjust HTML
+	sectionHtml = sectionHtml.slice(pos);
+	sectionHtml = sectionHtml.split(/<\/TR>\n<\/TABLE>/i, 2)[0];
+	
+	// Get each meeting time
+	var parts = sectionHtml.split(/<\/TR>\n/i), n = parts.length;
+	for (var i = 1; i < n; i ++) {
+		var time = {start: String, end: String, day: 'X', location: 'TBA',
+			startDate: Date, endDate: Date, scheduleType: 'Lecture', instructor: 'TBA'};
+
+		// Break it into lines
+		var lines = parts[i].split('\n');
+		for (var j = 1; j < lines.length; j ++) {
+			lines[j] = lines[j].split(/<\/TD>/i, 2)[0].split('>')[1];
+		}
+		
+		// Get the basic info
+		time.day = lines[3];
+		time.location = lines[4];
+		time.scheduleType = lines[6];
+		time.instructor = lines[7];
+		
+		// Get the date info
+		var startEnd = lines[2].split(' - ');
+		time.start = startEnd[0];
+		time.end = startEnd[1];
+		startEnd = lines[5].split(' - ');
+		time.startDate = new Date(startEnd[0]);
+		time.endDate = new Date(startEnd[1]);
+		
+		times.push(time);
+	}
+	
+	return times;
+}
+
+/**
  * Parses a raw HTML string to get form data. This includes the action, method,
  * inputs, and default values.
  *
@@ -399,3 +607,4 @@ function extractAttribute(html, attr) {
 // Export the necessary functions
 module.exports.getTerms = getTerms;
 module.exports.getPrograms = getPrograms;
+module.exports.getSections = getSections;

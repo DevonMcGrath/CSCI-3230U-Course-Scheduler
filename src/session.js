@@ -35,7 +35,10 @@ var User = mongoose.model('users', new Schema({
 }, {collection: 'users'}));
 var Section = mongoose.model('sections', new Schema({
 	crn: Number, title: String, remaining: Number, type: String, campus: String,
-	room: String, lastUpdated: Date, subject: String, code: String, term: String
+	room: String, lastUpdated: Date, subject: String, code: String, term: String,
+	instructor: String, instructionMethod: String, linkedSections: [{crn: Number}],
+	times: [{start: Date, end: Date, day: String, location: String, date: Date,
+	scheduleType: String, instructor: String}]
 }, {collection: 'sections'}));
 var Course = mongoose.model('courses', new Schema({
 	subject: String, code: String, lastUpdated: Date
