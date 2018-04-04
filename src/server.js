@@ -101,13 +101,18 @@ app.post('/user', function(req, res) {
 			// Generate a new user ID if the user doesn't exist
 			if (!exists) {
 				System.out.println('Creating new user...', System.FG['bright-yellow']);
-				id = session.genID();
-				session.setSession(req, res, id);
-				System.out.println('Done.', System.FG['bright-yellow']);
-			}
+				id = session.genID(function(id, err) {
+					session.setSession(req, res, id);
+					System.out.println('Done.', System.FG['bright-yellow']);
+					
+					// Handle the actual command
+					handleUserCmd(req, res, id);
+				});
+			} else {
 			
-			// Handle the actual command
-			handleUserCmd(req, res, id);
+				// Handle the actual command
+				handleUserCmd(req, res, id);
+			}
 		});
 	}
 });

@@ -80,7 +80,7 @@ function getSession(req, res) {
 /**
  * Generates a new session ID, puts it in the database, and returns it.
  */
-function genID() {
+function genID(afterInsertCallback) {
 	var id = uuid();
 	
 	// Add the new user to the database
@@ -91,6 +91,11 @@ function genID() {
 		// Insert failed
 		if (err) {
 			System.err.println('DB ERROR: failed to insert user: ' + err);
+		}
+		
+		// Call the callback function
+		if (afterInsertCallback) {
+			afterInsertCallback(id, err);
 		}
 	});
 	
