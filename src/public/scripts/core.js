@@ -3,7 +3,7 @@
  * Description: This script contains functions commonly used in the web application.
  */
 
-var USER_URI = '/user', user = null, pageInit = null;
+var USER_URI = '/user', user = null, pageStatus = 0;
 
 function User(term, courses) {
 	this.term = term;
@@ -17,8 +17,8 @@ function User(term, courses) {
 		var html = 'Term: <span class="term">' + this.term + '</span> | Courses: ';
 		var c = this.courses? this.courses : [], n = c.length? c.length : 0;
 		for (var i = 0; i < n; i ++) {
-			html += '<span class="btn-simple" onclick="removeCourse(\'' + c[i] + '\');"' +
-				' title="Remove course">' + c[i] + '</span>';
+			html += '<span class="btn-simple" onclick="removeCourse(\'' + this.term +
+				'\', \'' + c[i] + '\');"' + ' title="Remove course">' + c[i] + '</span>';
 		}
 		if (n == 0) {
 			html += 'None';
@@ -61,11 +61,11 @@ function postData(url, data, callback) {
 }
 
 /** Removes a course that the user has selected. */
-function removeCourse(name) {
+function removeCourse(term, name) {
 	
 	// Tell the server to remove the course
 	name = name? name : '';
-	var term = user.term? encodeURIComponent(user.term) : '';
+	term = term? encodeURIComponent(term) : '';
 	var parts = name.split(' ');
 	var subject = encodeURIComponent(parts[0]);
 	var code = parts[1]? encodeURIComponent(parts[1]) : '';
@@ -79,7 +79,14 @@ function removeCourse(name) {
 		
 		// The course was removed
 		else {
-			
+			var newCourses = [], n = user.courses? user.courses.length : 0;
+			for (var i = 0; i < n; i ++) {
+				if (data != user.courses[i]) {
+					newCourses.push(user.courses[i]);
+				}
+			}
+			user.courses = newCourses;
+			user.updateInfo();
 		}
 	});
 }
@@ -97,8 +104,19 @@ function addCourse(term, name) {
 	postData(USER_URI, 'cmd=ADDCOURSE&term=' + term + '&subject=' + subject + '&code=' + code,
 	function(data, err) {
 		
-		// TODO handle the result
-		console.log(data);
+		// Add course
+		if (!err && data && data.indexOf('\t') >= 0) {
+			var info = data.split('\t');
+			var added = info[1] + ' ' + info[2];
+			user.courses.push(added);
+			user.updateInfo();
+		}
+		
+		// Print an error
+		else {
+			log('could not add "' + name + '" for term "' + term +
+				'". Server responded with "' + data + '"');
+		}
 	});
 }
 
@@ -129,9 +147,9 @@ $(document).ready(function() {
 		addCourse('201701', 'CSCI 2050U');//FIXME remove
 		/////////////////////////////////////////////////////////////
 		
-		// Call the page init function (if it exists)
-		if (pageInit) {
-			pageInit();
-		}
+		// Set the page status to 2 after the user data has loaded
+		pageStatus = 2;
 	});
+	
+	pageStatus = 1;
 });
