@@ -4,6 +4,11 @@ body {
     width: 100%;
 }
 
+p {
+    font-family: "Comic-Sans", cursive;
+    color: #FFF;
+    padding: 5px;
+}
 .text-vcenter {
     display: table-cell;
     text-align: center;
@@ -13,6 +18,7 @@ body {
 .list-group-item {
     display: list-item;
 } 
+
 #introduction {
     background: url("/images/campus_shot.jpg") no-repeat center center fixed;
     display: table;
