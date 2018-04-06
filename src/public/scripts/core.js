@@ -73,15 +73,15 @@ function removeCourse(term, name) {
 	function(data, err) {
 		
 		// There was some error
-		if (err) {
-			log('Could not remove course ' + data);
+		if (err || data != '1') {
+			log('Could not remove course ' + name);
 		}
 		
 		// The course was removed
 		else {
 			var newCourses = [], n = user.courses? user.courses.length : 0;
 			for (var i = 0; i < n; i ++) {
-				if (data != user.courses[i]) {
+				if (name != user.courses[i]) {
 					newCourses.push(user.courses[i]);
 				}
 			}
@@ -143,8 +143,9 @@ $(document).ready(function() {
 		user.updateInfo();
 		
 		/* ------------------------ COURSE ADDITION TEST CODE ---- */
-		addCourse('201701', 'CSCI 1061U');//FIXME remove
-		addCourse('201701', 'CSCI 2050U');//FIXME remove
+		//addCourse('201701', 'CSCI 1061U');//FIXME remove
+		//addCourse('201701', 'CSCI 2050U');//FIXME remove
+		//removeCourse('201701', 'CSCI 2050U');//FIXME remove
 		/////////////////////////////////////////////////////////////
 		
 		// Set the page status to 2 after the user data has loaded

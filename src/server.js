@@ -135,12 +135,15 @@ function handleUserCmd(req, res, id) {
 	// Remove a course
 	else if (cmd == 'REMCOURSE') {
 		
-		// TODO
 		// Get the relevant fields
 		var term = req.body.term;
 		var subject = req.body.subject;
 		var code = req.body.code;
-		res.status(418).send('Not implemented yet');
+		System.out.println('\t              > term="' + term + '", subject="' +
+			subject + '", code="' + code + '"', System.FG['bright-green']);
+		
+		// Get the session to handle the request
+		session.removeCourse(req, res, term, subject, code, id);
 	}
 	
 	// Add a course

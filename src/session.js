@@ -282,6 +282,61 @@ function sendSections(req, res, sections) {
     res.send(JSON.stringify(sections));
 }
 
+/**
+ * Removes a course from the specified user selection.
+ *
+ *	req		the HTTP request.
+ *	res		the HTTP response.
+ *	term	the term (e.g. 201801).
+ *	subject	the course subject (e.g. CSCI).
+ *	code	the course code (e.g. 1061U).
+ *	id		the user ID to update.
+ */
+function removeCourse(req, res, term, subject, code, id) {
+	
+	// Check if the user exists
+	userExists(id, function(usr) {
+		
+		// User does not exist
+		if (!usr) {
+			System.err.println('\t              > cannot find user');
+			res.status(500).send('0');
+			return;
+		}
+		
+		// Check if they have the course
+		var found = false, n = usr.courses.length, newCourses = [];
+		for (var i = 0; i < n; i ++) {
+			var c = usr.courses[i];
+			if (c.term == term && c.subject == subject && c.code == code) {
+				found = true;
+			} else {
+				newCourses.push(c);
+			}
+		}
+		if (!found) {
+			System.err.println('\t              > user does not have ' + subject + ' ' + code);
+			res.send('0'); // no update
+			return;
+		}
+		
+		// Update the user
+		User.update({sid: id}, {courses: newCourses}, {multi: false},
+		function(err, numAffected) {
+			
+			// Error updating
+			if (err || numAffected.nModified != 1) {
+				System.err.println('\t              > DB COURSE UPDATE FAILED');
+				res.send('0');
+			} else {
+				System.err.println('\t              > removed ' + subject +
+					' ' + code + ' from a user');
+				res.send('1');
+			}
+		});
+	});
+}
+
 // Export the necessary functions
 module.exports.setSession = setSession;
 module.exports.getSession = getSession;
@@ -289,3 +344,4 @@ module.exports.genID = genID;
 module.exports.userExists = userExists;
 module.exports.getInfo = getInfo;
 module.exports.addCourse = addCourse;
+module.exports.removeCourse = removeCourse;
