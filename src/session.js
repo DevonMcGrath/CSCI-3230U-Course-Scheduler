@@ -32,13 +32,13 @@ mongoose.connect(DB, function(err) {
 
 // Database tables
 var User = mongoose.model('users', new Schema({
-		sid: String, term: String, sections: [
+		sid: {type: String, index: true}, term: String, sections: [
 			{crn: Number, selected: Boolean}
 		], courses: [{subject: String, code: String, term: String}], lastAccessed: Date
 }, {collection: 'users'}));
 var Section = mongoose.model('sections', new Schema({
-	crn: Number, title: String, remaining: Number, type: String, campus: String,
-	room: String, lastUpdated: Date, subject: String, code: String, term: String,
+	crn: {type: Number, index: true}, title: String, remaining: Number, type: String, campus: String,
+	room: String, lastUpdated: Date, subject: String, code: String, term: {type: String, index: true},
 	instructor: String, instructionMethod: String, linkedSections: [{crn: Number}],
 	times: [{start: Number, end: Number, day: String, location: String,
 			startDate: Date, endDate: Date, scheduleType: String, instructor: String}]
