@@ -33,7 +33,7 @@ mongoose.connect(DB, function(err) {
 // Database tables
 var User = mongoose.model('users', new Schema({
 		sid: {type: String, index: true}, term: String, sections: [
-			{crn: Number, selected: Boolean}
+			{crn: Number, term: String}
 		], courses: [{subject: String, code: String, term: String}], lastAccessed: Date
 }, {collection: 'users'}));
 var Section = mongoose.model('sections', new Schema({
@@ -268,18 +268,15 @@ function findSections(req, res, term, subject, code, usr) {
 }
 
 /**
- * Sends the sections as JSON to the client.
+ * Sends an object as JSON to the client.
  *
- *	req			the HTTP request.
- *	res			the HTTP response.
- *	sections	the sections to send.
+ *	req		the HTTP request.
+ *	res		the HTTP response.
+ *	json	the JSON object to send.
  */
-function sendSections(req, res, sections) {
-	
-	// Just send the sections as JSON to make parsing on the client easy
-	if (!sections) {sections = [];}
+function sendJSON(req, res, json) {
     res.setHeader('Content-Type', 'application/json');
-    res.send(JSON.stringify(sections));
+    res.send(JSON.stringify(json));
 }
 
 /**
@@ -426,7 +423,7 @@ function getSections(req, res, term, subject, code) {
 			
 			// Results found
 			if (results.length > 0) {
-				sendSections(req, res, results);
+				sendJSON(req, res, results);
 				System.out.println('\t              > sending cached sections for ' +
 					subject + ' ' + code + ', for ' + term, System.FG['bright-green']);
 			}
@@ -461,12 +458,12 @@ function getNewSections(req, res, term, subject, code) {
 		if (!sections || sections.length == 0) {
 			System.err.println('\t              > cannot find ' + subject + ' ' +
 				code + ' for term ' + term);
-			sendSections(req, res, []);
+			sendJSON(req, res, []);
 			return false;
 		}
 		
 		// Send the sections back to the user
-		sendSections(req, res, sections);
+		sendJSON(req, res, sections);
 		var n = sections.length;
 		System.out.println('\t              > found ' + n + ' sections for ' +
 			subject + ' ' + code + ', for ' + term, System.FG['bright-green']);
@@ -502,6 +499,65 @@ function getNewSections(req, res, term, subject, code) {
 	});
 }
 
+/**
+ * Sets the state of a section for a user.
+ *
+ *	req			the HTTP request.
+ *	res			the HTTP response.
+ *	term		the term (e.g. 201801).
+ *	selected	the selected state of the section.
+ *	id			the user ID to update.
+ */
+function setSectionSelected(req, res, term, crn, selected, id) {
+	
+	// Check if the user exists
+	userExists(id, function(usr) {
+		
+		// User does not exist
+		if (!usr) {
+			System.err.println('\t              > cannot find user');
+			res.status(500).send('0');
+			return;
+		}
+		
+		// Check if the section is already selected
+		var n = usr.sections.length, done = false, newSections = [];
+		for (var i = 0; i < n; i ++) {
+			var s = usr.sections[i];
+			if (s.crn == crn && s.term == term) {
+				if (selected) {
+					done = true;
+					break;
+				}
+			} else {
+				newSections.push(s);
+			}
+		}
+		if (selected) {
+			newSections.push({term: term, crn: crn});
+		}
+		if (done || newSections.length == n) {
+			res.send('1');
+			return;
+		}
+		
+		// Update the user
+		User.update({sid: id}, {sections: newSections}, {multi: false},
+		function(err, numAffected) {
+			
+			// Error updating
+			if (err || numAffected.nModified != 1) {
+				System.err.println('\t              > DB SECTION SELECT UPDATE FAILED');
+				res.send('0');
+			} else {
+				System.out.println('\t              > ' + (selected? '' : 'de') +
+					'selected ' + crn + ' from a user', System.FG['bright-green']);
+				res.send('1');
+			}
+		});
+	});
+}
+
 // Export the necessary functions
 module.exports.setSession = setSession;
 module.exports.getSession = getSession;
@@ -512,3 +568,5 @@ module.exports.addCourse = addCourse;
 module.exports.removeCourse = removeCourse;
 module.exports.setTerm = setTerm;
 module.exports.getSections = getSections;
+module.exports.setSectionSelected = setSectionSelected;
+module.exports.sendJSON = sendJSON;

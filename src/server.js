@@ -50,11 +50,6 @@ app.get('/select-courses', function(req, res) {
 	res.render('select-courses', {'title': 'Select Courses'});
 });
 
-// Schedule Options page
-app.get('/schedule-options', function(req, res) {
-	res.render('schedule-options', {'title': 'Schedule Options'});
-});
-
 // Schedule Creator page
 app.get('/schedule-creator', function(req, res) {
 	res.render('schedule-creator', {'title': 'Schedule Creator'});
@@ -182,6 +177,14 @@ function handleUserCmd(req, res, id) {
 		
 		// Get the session to handle the request
 		session.getSections(req, res, term, subject, code);
+	}
+	
+	// Select section
+	else if (cmd == 'SELECTSECTION') {
+		
+		// Get the session to handle the request
+		session.setSectionSelected(req, res, term,
+			req.body.crn, req.body.state, id);
 	}
 	
 	// 400 Bad Request: Not sure what to do
