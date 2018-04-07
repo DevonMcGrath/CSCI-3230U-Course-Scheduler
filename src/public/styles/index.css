@@ -32,6 +32,10 @@ p {
     padding-top: 40px;
 }
 
+#howtouse p {
+    color: #000;
+}
+
 #aboutus {
     height: 95vh;
     padding-top: 40px;

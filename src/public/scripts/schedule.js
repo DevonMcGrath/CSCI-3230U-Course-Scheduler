@@ -62,9 +62,13 @@ jQuery(document).ready(function($){
 
     $("#testbutton2").click(function() { 
         $("#monday1110").remove();
-    });
+	});
+	
+	var inSchedule = {};
+
     function addEvent(day, starttime, endtime, msg, type) {
-        var currentString = $("#" + day).html();
+		inSchedule[day + starttime.split(":")[0] + starttime.split(":")[1]] = 1;
+		var currentString = $("#" + day).html();
 
         var start = getScheduleTimestamp(starttime),
             duration = getScheduleTimestamp(endtime) - start;
@@ -88,6 +92,12 @@ jQuery(document).ready(function($){
 		return timeStamp;
 	}
 
+	function convertTohhmm(minutes) {
+		var hours = Math.floor(minutes / 60);
+		var minutes = minutes % 60;
+		return (hours + ":" + minutes);
+	}
+
 	function transformElement(element, value) {
 		element.css({
 		    '-moz-transform': value,
@@ -98,41 +108,129 @@ jQuery(document).ready(function($){
 		});
 	}
 
+
 	dropdown = $("#dropdown");
-    dropdownhtml = dropdown.html();
+	dropdownhtml = dropdown.html();
+	var courseColours = {};
 
-    dropdownhtml += '<div class="btn-group">';
-    dropdownhtml += '<div>';
-    dropdownhtml += '<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">CSCI2050';
-    dropdownhtml += '<span class="caret"></span></button>';
-    dropdownhtml += '<ul class="dropdown-menu">';
-    dropdownhtml += '<li class="dropdown-submenu">';
-    dropdownhtml += '<a class="test" tabindex="-1" href="#">Lecture <span class="caret"></span></a>';
-    
-    dropdownhtml += '<ul class="dropdown-submenu">';
-    dropdownhtml += '<li><a type="lecture" day="monday" time="8:10-9:40" tabindex="-1" href="#">Monday 8:10-9:40</a></li>';
-    dropdownhtml += '<li><a type="lecture" day="tuesday" time="11:10-12:30" tabindex="-1" href="#">Tuesday 11:10-12:30</a></li>';
-    dropdownhtml += '</ul></li>';
+	setTimeout(function() {
+		courses = user.courses;
+		$.each(courses, function(count, course) {
+			courseColours[course["code"]] = count + 1;
+			dropdownhtml += "<div>";
+			dropdownhtml += "Course: " + course["subject"] + course["code"];
+			dropdownhtml += 'Lecture: <select id="' + course["subject"] + course["code"] + 'lecture"></select>';
+			dropdownhtml += 'Laboratory: <select id="' + course["subject"] + course["code"] + 'laboratory"></select>';
+			dropdownhtml += 'Tutorial: <select id="' + course["subject"] + course["code"] + 'tutorial"></select>';
+			dropdownhtml += "</div>";
+			count++;
 
-    dropdownhtml += '<li class="dropdown-submenu">';
-    dropdownhtml += '<a class="test" tabindex="-1" href="#">Lab <span class="caret"></span></a>';
-    
-    dropdownhtml += '<ul class="dropdown-submenu">';
-    dropdownhtml += '<li><a type="lab" day="wednesday" time="8:10-9:40" tabindex="-1" href="#">Wednesday 8:10-9:40</a></li>';
-    dropdownhtml += '<li><a type="lab" day="thursday" time="11:10-12:30" tabindex="-1" href="#">Thursday 11:10-12:30</a></li>';
-    dropdownhtml += '</ul></li>';
+		});
+		
+		dropdown.html(dropdownhtml);
 
-    dropdownhtml += '<li class="dropdown-submenu">';
-    dropdownhtml += '<a class="test" tabindex="-1" href="#">Tutorial <span class="caret"></span></a>';
-    
-    dropdownhtml += '<ul class="dropdown-submenu">';
-    dropdownhtml += '<li><a type="tutorial" day="friday" time="8:10-9:40" tabindex="-1" href="#">Friday 8:10-9:40</a></li>';
-    dropdownhtml += '<li><a type="tutorial" day="monday" time="11:10-12:30" tabindex="-1" href="#">Monday 11:10-12:30</a></li>';
-    dropdownhtml += '</ul></li>';
-    dropdownhtml += '</ul>'
-    dropdownhtml += '</div>';
+		$.each(courses, function(count, course) {
+			getSections(course["term"], course["subject"], course["code"], function(data, err) {
+				var lecture = $("#" + course["subject"] + course["code"] + 'lecture');
+				var laboratory = $("#" + course["subject"] + course["code"] + 'laboratory');
+				var tutorial = $("#" + course["subject"] + course["code"] + 'tutorial');
+				lecture.append("<option> </option>");
+				laboratory.append("<option> </option>");
+				tutorial.append("<option> </option>");
+				$.each(data, function(key, courses) {
+					if(courses["times"][0]["scheduleType"] == "Laboratory"){
+						laboratory.append('<option value="' + course["code"] + ":" +courses["times"][0]["day"] + ":" + convertTohhmm(courses["times"][0]["start"]) + "-" + convertTohhmm(courses["times"][0]["end"]) + ':Laboratory:'+ courses["crn"] + '">' + courses["times"][0]["day"]+ ":" + convertTohhmm(courses["times"][0]["start"]) + "-" + convertTohhmm(courses["times"][0]["end"]) + "</option>");
+					} 
+					if(courses["times"][0]["scheduleType"] == "Tutorial"){
+						laboratory.append('<option value="' + course["code"] + ":" + courses["times"][0]["day"] + ":" + convertTohhmm(courses["times"][0]["start"]) + "-" + convertTohhmm(courses["times"][0]["end"]) + ':Tutorial:' + courses["crn"] + '">' + courses["times"][0]["day"] + ":" + convertTohhmm(courses["times"][0]["start"]) + "-" + convertTohhmm(courses["times"][0]["end"]) + "</option>");
+					} 
+					if(courses["times"][0]["scheduleType"] == "Lecture"){
+						var times = "";
+						$.each(courses["times"], function(amt, time) {
+							times += time["day"] + ":" + convertTohhmm(time["start"]) + "-" + convertTohhmm(time["end"]) + ":";
+						});
+						lecture.append('<option value="' + course["code"] + ":" + times + 'Lecture:' + courses["crn"] + '">' + times + '</option>');
+					} 
+				});
+			});
+		});
+		$('select').on('change', function(e) {
+			var optionSelected = $("option:selected", this);
+			if(this.value) {
+			var valueSelected = this.value.split(":");
+			var day;
+			switch (valueSelected[1]) {
+				case "M":
+					day = "monday";
+					break;
+				case "T":
+					day = "tuesday";
+					break;
+				case "W":
+					day = "wednesday";
+					break;
+				case "R":
+					day = "thursday";
+					break;
+				case "F":
+					day = "friday";
+					break;
+			}
+			var startTime;
+			var endTime;
+			if (valueSelected.length > 7) {
+				startTime = valueSelected[2] + ":" + valueSelected[3].split("-")[0];
+				endTime = valueSelected[3].split("-")[1] + ":" + valueSelected[4];
+				if (inSchedule[day + startTime.split(":")[0] +startTime.split(":")[1]] == 1) {
+					$("#" + day + startTime.split(":")[0] +startTime.split(":")[1]).remove();
+					inSchedule[day + startTime.split(":")[0] +startTime.split(":")[1]] = 0;
+				} else {
+					addEvent(day, startTime, endTime, valueSelected[0] + " " + valueSelected[9] + " CRN:" + valueSelected[10], courseColours[valueSelected[0]]);
+				}
+				switch (valueSelected[5]) {
+					case "M":
+						day = "monday";
+						break;
+					case "T":
+						day = "tuesday";
+						break;
+					case "W":
+						day = "wednesday";
+						break;
+					case "R":
+						day = "thursday";
+						break;
+					case "F":
+						day = "friday";
+						break;
+				}
+				startTime = valueSelected[6] + ":" + valueSelected[7].split("-")[0];
+				endTime = valueSelected[7].split("-")[1] + ":" + valueSelected[8];
+				if (inSchedule[day + startTime.split(":")[0] +startTime.split(":")[1]] == 1) {
+					$("#" + day + startTime.split(":")[0] +startTime.split(":")[1]).remove();
+					inSchedule[day + startTime.split(":")[0] +startTime.split(":")[1]] = 0;
+				} else {
+					addEvent(day, startTime, endTime, valueSelected[0] + " " + valueSelected[9] + " CRN:" + valueSelected[10], courseColours[valueSelected[0]]);
+				}
+			} else {
+				startTime = valueSelected[2] + ":" + valueSelected[3].split("-")[0];
+				endTime = valueSelected[3].split("-")[1] + ":" + valueSelected[4];
+				if (inSchedule[day + startTime.split(":")[0] +startTime.split(":")[1]] == 1) {
+				
+					$("#" + day + startTime.split(":")[0] +startTime.split(":")[1]).remove();
+					inSchedule[day + startTime.split(":")[0] +startTime.split(":")[1]] =  0;
+				} else {
+					addEvent(day, startTime, endTime, valueSelected[0] + " " + valueSelected[5] + " CRN:" +valueSelected[6], courseColours[valueSelected[0]]);
+				}
+			}
+		}
 
-    dropdown.html(dropdownhtml);
+		});
+	}, 2000);
+
+
+
+
 
 
     $('.dropdown-submenu').on("click", function(e){
