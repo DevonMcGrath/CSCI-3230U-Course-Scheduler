@@ -78,12 +78,12 @@ function removeCourse(term, subject, code) {
 	function(data, err) {
 		
 		// There was some error
-		if (err || data != '1') {
+		if (err) {
 			log('Could not remove course ' + name);
 		}
 		
 		// The course was removed
-		else {
+		else if (data == '1') {
 			var newCourses = [], n = user.courses? user.courses.length : 0;
 			for (var i = 0; i < n; i ++) {
 				var current = user.courses[i].subject + ' ' + user.courses[i].code;
@@ -118,7 +118,7 @@ function addCourse(term, subject, code) {
 		}
 		
 		// Print an error
-		else {
+		else if (err) {
 			log('could not add "' + name + '" for term "' + term +
 				'". Server responded with "' + data + '"');
 		}
@@ -155,7 +155,7 @@ function setTerm(term) {
 		}
 		
 		// Print an error
-		else {
+		else if (err) {
 			log('could not set term to "' + term + '"');
 		}
 	});
@@ -194,6 +194,12 @@ $(document).ready(function() {
 		// Set the page status to 2 after the user data has loaded
 		pageStatus = 2;
 	});
+	
+	// ---------------------------- SECTION GET TEST ----- */
+	getSections('201701', 'CSCI', '1061U', function(data, err) {
+		console.log(data);
+	});//FIXME remove
+	//////////////////////////////////////////////////////////
 	
 	pageStatus = 1;
 });

@@ -180,6 +180,8 @@ function handleUserCmd(req, res, id) {
 	// Get sections
 	else if (cmd == 'GETSECTIONS') {
 		
+		// Get the session to handle the request
+		session.getSections(req, res, term, subject, code);
 	}
 	
 	// 400 Bad Request: Not sure what to do

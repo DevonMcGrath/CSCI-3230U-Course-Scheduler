@@ -330,13 +330,15 @@ function getSections(term, subject, code, callback) {
 		// Parse the sections one at a time
 		data = updateSectionHTML(data);
 		var rawSections = data.split(/"ddheader"/gi), n = rawSections.length;
+		var now = new Date();
 		for (var i = 1; i < n; i ++) {
 			
 			var sectionHtml = rawSections[i];
 			
 			// Create the session object
-			var s = {crn: 0, title: 'Unavailable', remaining: 0, type: 'Other', campus: 'UOIT - Other',
-				room: 'NA', lastUpdated: new Date(), subject: 'TBD', code: 'TBD', term: term,
+			var s = {crn: 0, title: 'Unavailable', remaining: 0, schType: 'Other',
+				campus: 'UOIT - Other',
+				lastUpdated: now, subject: 'TBD', code: 'TBD', term: term,
 				instructor: 'TBA', instructionMethod: 'TBD', linkedSections: [], times: []};
 			
 			// Get the title, subject, code, CRN
@@ -356,16 +358,16 @@ function getSections(term, subject, code, callback) {
 			}
 			
 			// Get the schedule type
-			if (sectionHtml.indexOf(/<BR>\nLecture/i) >= 0) {
-				s.type = 'Lecture';
-			} else if (sectionHtml.indexOf(/<BR>\nTutorial/i) >= 0) {
-				s.type = 'Tutorial';
-			} else if (sectionHtml.indexOf(/<BR>\nLab/i) >= 0) {
-				s.type = 'Lab';
-			} else if (sectionHtml.indexOf(/<BR>\nLecture & Lab/i) >= 0) {
-				s.type = 'Lecture & Lab';
-			} else if (sectionHtml.indexOf(/<BR>\nThesis\/Project/i) >= 0) {
-				s.type = 'Thesis/Project';
+			if (sectionHtml.indexOf(/<br \/>\nLecture/i) >= 0) {
+				s.schType = 'Lecture';
+			} else if (sectionHtml.indexOf(/<br \/>\nTutorial/i) >= 0) {
+				s.schType = 'Tutorial';
+			} else if (sectionHtml.indexOf(/<br \/>\nLab/i) >= 0) {
+				s.schType = 'Lab';
+			} else if (sectionHtml.indexOf(/<br \/>\nLecture & Lab/i) >= 0) {
+				s.schType = 'Lecture & Lab';
+			} else if (sectionHtml.indexOf(/<br \/>\nThesis\/Project/i) >= 0) {
+				s.schType = 'Thesis/Project';
 			}
 			
 			// Get the location (campus)
@@ -380,15 +382,15 @@ function getSections(term, subject, code, callback) {
 			}
 			
 			// Get the instruction method
-			if (sectionHtml.search(/<BR>\nIn-class Delivery/i) >= 0) {
+			if (sectionHtml.search(/<br \/>\nIn-class Delivery/i) >= 0) {
 				s.instructionMethod = 'In-class Delivery';
-			} else if (sectionHtml.search(/<BR>\nIn-class & Online Delivery/i) >= 0) {
+			} else if (sectionHtml.search(/<br \/>\nIn-class & Online Delivery/i) >= 0) {
 				s.instructionMethod = 'In-class & Online Delivery';
-			} else if (sectionHtml.search(/<BR>\nOffsite/i) >= 0) {
+			} else if (sectionHtml.search(/<br \/>\nOffsite/i) >= 0) {
 				s.instructionMethod = 'Offsite';
-			} else if (sectionHtml.search(/<BR>\nVirtual Meet Times/i) >= 0) {
+			} else if (sectionHtml.search(/<br \/>\nVirtual Meet Times/i) >= 0) {
 				s.instructionMethod = 'Virtual Meet Times';
-			} else if (sectionHtml.search(/<BR>\nSection is Fully Online/i) >= 0) {
+			} else if (sectionHtml.search(/<br \/>\nSection is Fully Online/i) >= 0) {
 				s.instructionMethod = 'Online';
 			}
 			
@@ -398,27 +400,25 @@ function getSections(term, subject, code, callback) {
 				s.remaining = parseInt(parts[3].split('<', 2)[0].replace(/>/g, ''));
 			}
 			
-			// Get the instructor
-			parts = sectionHtml.split('I\0', 3);
-			if (parts.length > 1) {
-				s.instructor = parts[1].split('\n', 2)[0];
-			}
-			
 			// Get the linked sections
-			if (sectionHtml.search(/Show linked Section(s)<\/TD>\n/i) >= 0) {
-				sectionHtml = sectionHtml.replace(/\( CRN: /gi, '&\0');
-				parts = sectionHtml.split('&\0');
-				var n = parts.length;
-				for (var i = 1; i < n; i ++) {
-					var value = parseInt(parts[i].split(' ', 2)[0]);
+			if (sectionHtml.search(/Show linked Section\(s\)<\/td>\n/i) >= 0) {
+				parts = sectionHtml.split(/\( CRN: /gi);
+				var m = parts.length;
+				for (var j = 1; j < m; j ++) {
+					var value = parseInt(parts[j].split(' ', 2)[0]);
 					if (!isNaN(value)) {
-						linkedSections.push(value);
+						s.linkedSections.push({crn: value});
 					}
 				}
 			}
 			
 			// Get the meet times
 			s.times = getMeetTimes(sectionHtml);
+			if (s.times.length > 0) {
+				var t1 = s.times[0];
+				s.instructor = t1.instructor;
+				s.location = t1.location;
+			}
 			
 			sections.push(s);
 		}
@@ -447,8 +447,7 @@ function updateSectionHTML(html) {
 	// Shorten the HTML and make parsing easier
 	html = html.replace(/<abbr[^>]+>P<\/abbr>/gi, 'P');
 	html = html.replace(/<abbr[^>]+>TBA<\/abbr>/gi, 'TBA');
-	html = html.replace(/Instructors: <\/SPAN>/gi, 'I\0'); // instructors
-	html = html.replace(/<b><\/b><\/SPAN>/, 'L\0'); // location
+	html = html.replace(/<b><\/b><\/SPAN>/gi, 'L\0'); // location
 	html = html.replace(/"dbdefault"/gi, '@\0'); // seats/meet times
 	
 	return html;
@@ -495,12 +494,10 @@ function getMeetTimes(sectionHtml) {
 		time.startDate = new Date(startEnd[0]);
 		time.endDate = new Date(startEnd[1]);
 		startEnd = lines[2].split(' - ');
-		time.start = startEnd[0];
-		time.end = startEnd[1];
 		for (var j = 0; j < 2; j ++) {
 			
 			// Determine morning/afternoon
-			var t = startEnd[i];
+			var t = startEnd[j];
 			if (!t) {time.end = time.start; break;}
 			var hours = t.search(/pm/i) > 0? 12 : 0;
 			t = t.split(' ')[0]; // remove am/pm

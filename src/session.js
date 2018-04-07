@@ -37,8 +37,8 @@ var User = mongoose.model('users', new Schema({
 		], courses: [{subject: String, code: String, term: String}], lastAccessed: Date
 }, {collection: 'users'}));
 var Section = mongoose.model('sections', new Schema({
-	crn: {type: Number, index: true}, title: String, remaining: Number, type: String, campus: String,
-	room: String, lastUpdated: Date, subject: String, code: String, term: {type: String, index: true},
+	crn: {type: Number, index: true}, title: String, remaining: Number, schType: String, campus: String,
+	lastUpdated: Date, subject: String, code: String, term: {type: String, index: true},
 	instructor: String, instructionMethod: String, linkedSections: [{crn: Number}],
 	times: [{start: Number, end: Number, day: String, location: String,
 			startDate: Date, endDate: Date, scheduleType: String, instructor: String}]
@@ -247,7 +247,7 @@ function findSections(req, res, term, subject, code, usr) {
 		// Send the proper result
 		if (found) {
 			var course = {term: term, subject: subject, code: code};
-			User.update({sid: id}, {$push: {courses: course}},
+			User.update({sid: usr.id}, {$push: {courses: course}},
 				{multi: false}, function() {});
 			res.send(term + '\t' + subject + '\t' + code);
 		} else {
@@ -277,6 +277,7 @@ function findSections(req, res, term, subject, code, usr) {
 function sendSections(req, res, sections) {
 	
 	// Just send the sections as JSON to make parsing on the client easy
+	if (!sections) {sections = [];}
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify(sections));
 }
@@ -400,6 +401,107 @@ function setTerm(req, res, term, id) {
 	});
 }
 
+/**
+ * Gets the section info matching the specified search.
+ *
+ *	req		the HTTP request.
+ *	res		the HTTP response.
+ *	term	the term (e.g. 201801).
+ *	subject	the course subject (e.g. CSCI).
+ *	code	the course code (e.g. 1061U).
+ */
+function getSections(req, res, term, subject, code) {
+	
+	// Remove sections that are past the cache age
+	var oldest = new Date((new Date()).valueOf() - MAX_SECTION_AGE_MS);
+	Section.remove({lastUpdated: {$lt: oldest}}, function(err) {
+		
+		// Handle the deletion result
+		if (err) {
+			System.err.println('DB ERROR: could not delete old sections');
+		}
+		
+		// Check if there are already sections matching the criteria
+		Section.find({term: term, subject: subject, code: code}).then(function(results) {
+			
+			// Results found
+			if (results.length > 0) {
+				sendSections(req, res, results);
+				System.out.println('\t              > sending cached sections for ' +
+					subject + ' ' + code + ', for ' + term, System.FG['bright-green']);
+			}
+			
+			// No sections found, try searching
+			else {
+				System.out.println('\t              > searching for ' +
+					subject + ' ' + code + ', for ' + term, System.FG['bright-green']);
+				getNewSections(req, res, term, subject, code);
+			}
+		});
+	});
+	
+}
+
+/**
+ * Gets the section info matching the specified search, which were not
+ * contained in the database.
+ *
+ *	req		the HTTP request.
+ *	res		the HTTP response.
+ *	term	the term (e.g. 201801).
+ *	subject	the course subject (e.g. CSCI).
+ *	code	the course code (e.g. 1061U).
+ */
+function getNewSections(req, res, term, subject, code) {
+	
+	// Make a request to the web parser
+	webParser.getSections(term, subject, code, function(sections) {
+		
+		// No sections found
+		if (!sections || sections.length == 0) {
+			System.err.println('\t              > cannot find ' + subject + ' ' +
+				code + ' for term ' + term);
+			sendSections(req, res, []);
+			return false;
+		}
+		
+		// Send the sections back to the user
+		sendSections(req, res, sections);
+		var n = sections.length;
+		System.out.println('\t              > found ' + n + ' sections for ' +
+			subject + ' ' + code + ', for ' + term, System.FG['bright-green']);
+		
+		// Add the sections to the database
+		System.out.println('DB: inserting sections...',
+			System.FG['bright-yellow']);
+		var errCount = 0;
+		for (var i = 0; i < n - 1; i ++) {
+			var s = sections[i];
+			Section.update({crn: s.crn}, s, {upsert: true}, function(err) {
+				if (err) {
+					System.err.println('DB ERROR: could not insert section, ' + err);
+					errCount ++;
+				}
+			});
+		}
+		Section.update({crn: sections[n-1].crn}, sections[n-1], {upsert: true}, function(err) {
+			if (err) {
+				System.err.println('DB ERROR: could not insert section, ' + err);
+				errCount ++;
+			}
+			
+			// If error, delete any that got inserted
+			if (errCount > 0) {
+				for (var i = 0; i < n; i ++) {
+					Section.remove(sections[i], function(err) {});
+				}
+			}
+		});
+		System.out.println('DB: done inserting new sections',
+			System.FG['bright-yellow']);
+	});
+}
+
 // Export the necessary functions
 module.exports.setSession = setSession;
 module.exports.getSession = getSession;
@@ -409,3 +511,4 @@ module.exports.getInfo = getInfo;
 module.exports.addCourse = addCourse;
 module.exports.removeCourse = removeCourse;
 module.exports.setTerm = setTerm;
+module.exports.getSections = getSections;
