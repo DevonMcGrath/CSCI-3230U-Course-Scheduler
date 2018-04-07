@@ -69,7 +69,20 @@ app.get('/programs', function(req, res) {
 
 // For getting the terms available
 app.get('/get-terms', function(req, res) {
-	webParser.getTerms(req, res);
+	webParser.getTerms(function(terms) {
+		
+		// Create the response
+		var txt = '', n = terms? terms.length : 0;
+		for (var i = 0; i < n; i ++) {
+			txt += terms[i] + '\t';
+		}
+		if (txt.length > 0) {
+			txt = txt.substr(0, txt.length - 1);
+		}
+		
+		// Send it
+		res.send(txt);
+	});
 });
 
 // For getting available programs (e.g. Computer Science)
@@ -122,7 +135,12 @@ app.post('/user', function(req, res) {
  */
 function handleUserCmd(req, res, id) {
 	
+	// Get common fields
 	var cmd = req.body.cmd;
+	var term = req.body.term;
+	var subject = req.body.subject;
+	var code = req.body.code;
+	
 	System.out.println('\t       command: "' + cmd + '"', System.FG['bright-cyan']);
 	
 	// Get user info
@@ -135,10 +153,6 @@ function handleUserCmd(req, res, id) {
 	// Remove a course
 	else if (cmd == 'REMCOURSE') {
 		
-		// Get the relevant fields
-		var term = req.body.term;
-		var subject = req.body.subject;
-		var code = req.body.code;
 		System.out.println('\t              > term="' + term + '", subject="' +
 			subject + '", code="' + code + '"', System.FG['bright-green']);
 		
@@ -149,15 +163,23 @@ function handleUserCmd(req, res, id) {
 	// Add a course
 	else if (cmd == 'ADDCOURSE') {
 		
-		// Get the relevant fields
-		var term = req.body.term;
-		var subject = req.body.subject;
-		var code = req.body.code;
 		System.out.println('\t              > term="' + term + '", subject="' +
 			subject + '", code="' + code + '"', System.FG['bright-green']);
 	
 		// Get the session to handle the request
 		session.addCourse(req, res, term, subject, code, id);
+	}
+	
+	// Set term
+	else if (cmd == 'SETTERM') {
+		
+		// Get the session to handle the request
+		session.setTerm(req, res, term, id);
+	}
+	
+	// Get sections
+	else if (cmd == 'GETSECTIONS') {
+		
 	}
 	
 	// 400 Bad Request: Not sure what to do

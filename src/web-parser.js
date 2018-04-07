@@ -85,40 +85,25 @@ function getWebPageData(domain, uri, callback, method, data) {
 }
 
 /**
- * Gets the available terms to create a schedule for, as text and sends
- * it back through the HTTP response. The response text is tab-separated term
- * IDs (e.g. 201801\t201709\t201705...).
+ * Gets the available terms to create a schedule for. Calls a callback function
+ * with the array of terms.
  *
- * req	the initial client request.
- * res	the HTTP response object.
+ *	callback	the callback function to receive the terms.
  */
-function getTerms(req, res) {
+function getTerms(callback) {
 	
 	// Check if the terms have already been requested before
 	if (TERM_PAGE.terms.length) {
-		System.out.println('> Sending cached terms.', System.FG['bright-green']);
-		
-		// Create the text
-		var v = TERM_PAGE.terms, n = v.length, txt = '';
-		for (var i = 0; i < n; i ++) {
-			txt += v[i] + '\t';
-		}
-		if (txt.length > 0) {
-			txt = txt.substr(0, txt.length - 1);
-		}
-		
-		// Send the response text
-		res.writeHead(200, {'Content-Type': 'text/plain'});
-		res.write(txt);
-		res.end();
-		
+		System.out.println('\t              > using cached terms', System.FG['bright-green']);
+		callback(TERM_PAGE.terms);
 		return;
 	}
 
 	// Make the request
+	System.out.println('\t              > getting terms...', System.FG['bright-yellow']);
 	getWebPageData(TERM_PAGE.domain, TERM_PAGE.uri, function(html) {
 		
-		var form = {}, txt = '';
+		var form = {};
 		try {
 			
 			// Get only the form
@@ -137,12 +122,8 @@ function getTerms(req, res) {
 						var v = form.inputs[i].values, n = v.length;
 						for (var j = 0; j < n; j ++) {
 							if (v[j].length > 0) {
-								txt += v[j] + '\t';
 								TERM_PAGE.terms.push(v[j]);
 							}
-						}
-						if (txt.length > 0) {
-							txt = txt.substr(0, txt.length - 1);
 						}
 						break;
 					}
@@ -151,10 +132,11 @@ function getTerms(req, res) {
 		} catch (e) {System.err.println(e);}
 		TERM_PAGE.form = form;
 		
-		// Send the response text
-		res.writeHead(200, {'Content-Type': 'text/plain'});
-		res.write(txt);
-		res.end();
+		System.out.println('\t              > ' + TERM_PAGE.terms.length + ' terms parsed',
+			System.FG['bright-yellow']);
+		
+		// Call the callback
+		callback(TERM_PAGE.terms);
 	}, 'GET');
 }
 

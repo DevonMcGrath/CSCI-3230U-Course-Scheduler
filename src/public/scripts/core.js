@@ -14,11 +14,15 @@ function User(term, courses) {
 	this.updateInfo = function() {
 		
 		// Create the HTML to display to the user
-		var html = 'Term: <span class="term">' + this.term + '</span> | Courses: ';
+		var t = this.term;
+		var html = 'Term: <span class="term">' + t + '</span> | Courses: ';
 		var c = this.courses? this.courses : [], n = c.length? c.length : 0;
 		for (var i = 0; i < n; i ++) {
-			html += '<span class="btn-simple" onclick="removeCourse(\'' + this.term +
-				'\', \'' + c[i] + '\');"' + ' title="Remove course">' + c[i] + '</span>';
+			if (c[i].term != t) {continue;}
+			var course = c[i].subject + ' ' + c[i].code;
+			html += '<span class="btn-simple" onclick="removeCourse(\'' + c[i].term +
+				'\', \'' + c[i].subject + '\', \'' + c[i].code + '\');"' +
+				' title="Remove course">' + course + '</span>';
 		}
 		if (n == 0) {
 			html += 'None';
@@ -61,14 +65,15 @@ function postData(url, data, callback) {
 }
 
 /** Removes a course that the user has selected. */
-function removeCourse(term, name) {
+function removeCourse(term, subject, code) {
+	
+	// Encode the fields
+	var name = subject + ' ' + code;
+	term = term? encodeURIComponent(term) : '';
+	subject = subject? encodeURIComponent(subject) : '';
+	code = code? encodeURIComponent(code) : '';
 	
 	// Tell the server to remove the course
-	name = name? name : '';
-	term = term? encodeURIComponent(term) : '';
-	var parts = name.split(' ');
-	var subject = encodeURIComponent(parts[0]);
-	var code = parts[1]? encodeURIComponent(parts[1]) : '';
 	postData(USER_URI, 'cmd=REMCOURSE&term=' + term + '&subject=' + subject + '&code=' + code,
 	function(data, err) {
 		
@@ -81,7 +86,8 @@ function removeCourse(term, name) {
 		else {
 			var newCourses = [], n = user.courses? user.courses.length : 0;
 			for (var i = 0; i < n; i ++) {
-				if (name != user.courses[i]) {
+				var current = user.courses[i].subject + ' ' + user.courses[i].code;
+				if (name != current) {
 					newCourses.push(user.courses[i]);
 				}
 			}
@@ -92,23 +98,22 @@ function removeCourse(term, name) {
 }
 
 /** Adds a course to the user's selection. */
-function addCourse(term, name) {
+function addCourse(term, subject, code) {
 	
-	// Get the proper fields
-	name = name? name : '';
+	// Encode the fields
 	term = term? encodeURIComponent(term) : '';
-	var parts = name.split(' ');
-	var subject = encodeURIComponent(parts[0]);
-	var code = parts[1]? encodeURIComponent(parts[1]) : '';
+	subject = subject? encodeURIComponent(subject) : '';
+	code = code? encodeURIComponent(code) : '';
 	
+	// Tell the server to add the course
 	postData(USER_URI, 'cmd=ADDCOURSE&term=' + term + '&subject=' + subject + '&code=' + code,
 	function(data, err) {
 		
 		// Add course
 		if (!err && data && data.indexOf('\t') >= 0) {
 			var info = data.split('\t');
-			var added = info[1] + ' ' + info[2];
-			user.courses.push(added);
+			var course = {term: info[0], subject: info[1], code: info[2]};
+			user.courses.push(course);
 			user.updateInfo();
 		}
 		
@@ -116,6 +121,42 @@ function addCourse(term, name) {
 		else {
 			log('could not add "' + name + '" for term "' + term +
 				'". Server responded with "' + data + '"');
+		}
+	});
+}
+
+/** Gets section information. */
+function getSections(term, subject, code, callback) {
+	
+	// Encode the fields
+	term = term? encodeURIComponent(term) : '';
+	subject = subject? encodeURIComponent(subject) : '';
+	code = code? encodeURIComponent(code) : '';
+	
+	// Get the sections
+	postData(USER_URI, 'cmd=GETSECTIONS&term=' + term +
+		'&subject=' + subject + '&code=' + code, callback);
+}
+
+/** Sets the term the user is viewing. */
+function setTerm(term) {
+	
+	// Encode the term
+	term = term? encodeURIComponent(term) : '';
+	
+	// Tell the server to update the term
+	postData(USER_URI, 'cmd=SETTERM&term=' + term,
+	function(data, err) {
+		
+		// Update term
+		if (!err && data == '1') {
+			user.term = term;
+			user.updateInfo();
+		}
+		
+		// Print an error
+		else {
+			log('could not set term to "' + term + '"');
 		}
 	});
 }
@@ -132,20 +173,22 @@ $(document).ready(function() {
 		}
 		
 		// Create the user
-		var res = data.split('\t'), n = res.length;
-		var html = 'Term: <span class="term">' + res[0] + '</span> | Courses: ';
+		var lines = data.split('\n'), n = lines.length;
 		var courses = [];
 		for (var i = 1; i < n; i ++) {
-			courses.push(res[i]);
+			var info = lines[i].split('\t');
+			var course = {term: info[0], subject: info[1], code: info[2]};
+			courses.push(course);
 		}
 		
-		user = new User(res[0], courses);
+		user = new User(lines[0], courses);
 		user.updateInfo();
 		
 		/* ------------------------ COURSE ADDITION TEST CODE ---- */
-		//addCourse('201701', 'CSCI 1061U');//FIXME remove
-		//addCourse('201701', 'CSCI 2050U');//FIXME remove
-		//removeCourse('201701', 'CSCI 2050U');//FIXME remove
+		addCourse('201701', 'CSCI', '1061U');//FIXME remove
+		addCourse('201701', 'CSCI', '2050U');//FIXME remove
+		//removeCourse('201701', 'CSCI', '2050U');//FIXME remove
+		setTerm('201701');//FIXME remove
 		/////////////////////////////////////////////////////////////
 		
 		// Set the page status to 2 after the user data has loaded

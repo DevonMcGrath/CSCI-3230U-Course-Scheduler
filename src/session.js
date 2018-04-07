@@ -134,11 +134,12 @@ function getInfo(id, callback) {
 		
 		// If something was found, create the info
 		if (found) {
-			info = results[0].term;
-			var courses = results[0].courses, n = courses.length? courses.length : 0;
+			var usr = results[0];
+			info = usr.term;
+			var courses = usr.courses, n = courses.length? courses.length : 0;
 			for (var i = 0; i < n; i ++) {
 				var c = courses[i];
-				info = info + '\t' + c.subject + ' ' + c.code;
+				info = info + '\n' + c.term + '\t' + c.subject + '\t' + c.code;
 			}
 		}
 		
@@ -327,9 +328,73 @@ function removeCourse(req, res, term, subject, code, id) {
 				System.err.println('\t              > DB COURSE UPDATE FAILED');
 				res.send('0');
 			} else {
-				System.err.println('\t              > removed ' + subject +
-					' ' + code + ' from a user');
+				System.out.println('\t              > removed ' + subject +
+					' ' + code + ' from a user', System.FG['bright-green']);
 				res.send('1');
+			}
+		});
+	});
+}
+
+/**
+ * Sets the term for the user to use.
+ *
+ *	req		the HTTP request.
+ *	res		the HTTP response.
+ *	term	the term (e.g. 201801).
+ *	id		the user ID to update.
+ */
+function setTerm(req, res, term, id) {
+	
+	// Check if the user exists
+	System.out.println('\t              > updating user\'s term to "' + term + '"',
+		System.FG['bright-green']);
+	userExists(id, function(usr) {
+		
+		// User does not exist
+		if (!usr) {
+			System.err.println('\t              > cannot find user');
+			res.status(500).send('0');
+			return;
+		}
+		
+		// Get the terms
+		webParser.getTerms(function(terms) {
+			
+			// Check if the term exists
+			var index = terms? terms.indexOf(term) : -1;
+			
+			// Does not exist
+			if (index < 0) {
+				System.err.println('\t              > could not find term "' + term + '"');
+				res.status(400).send('0');
+			}
+			
+			// Term does exist
+			else {
+				
+				// No need to update database
+				if (term == usr.term) {
+					System.out.println('\t              > no change in user\'s term',
+						System.FG['bright-green']);
+					res.send('1');
+					return;
+				}
+				
+				// Update the term in the database
+				User.update({sid: id}, {term: term}, {multi: false},
+				function(err, numAffected) {
+					
+					// Error updating
+					if (err || numAffected.nModified != 1) {
+						System.err.println('\t              > DB TERM UPDATE FAILED');
+						res.send('0');
+					} else {
+						System.out.println('\t              > DB UPDATED TERM',
+							System.FG['bright-green']);
+						res.send('1');
+					}
+				});
 			}
 		});
 	});
@@ -343,3 +408,4 @@ module.exports.userExists = userExists;
 module.exports.getInfo = getInfo;
 module.exports.addCourse = addCourse;
 module.exports.removeCourse = removeCourse;
+module.exports.setTerm = setTerm;
