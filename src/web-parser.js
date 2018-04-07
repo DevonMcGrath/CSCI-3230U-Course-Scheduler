@@ -358,15 +358,15 @@ function getSections(term, subject, code, callback) {
 			}
 			
 			// Get the schedule type
-			if (sectionHtml.indexOf(/<br \/>\nLecture/i) >= 0) {
+			if (sectionHtml.search(/<br \/>\nLecture/i) >= 0) {
 				s.schType = 'Lecture';
-			} else if (sectionHtml.indexOf(/<br \/>\nTutorial/i) >= 0) {
+			} else if (sectionHtml.search(/<br \/>\nTutorial/i) >= 0) {
 				s.schType = 'Tutorial';
-			} else if (sectionHtml.indexOf(/<br \/>\nLab/i) >= 0) {
+			} else if (sectionHtml.search(/<br \/>\nLab/i) >= 0) {
 				s.schType = 'Lab';
-			} else if (sectionHtml.indexOf(/<br \/>\nLecture & Lab/i) >= 0) {
+			} else if (sectionHtml.search(/<br \/>\nLecture & Lab/i) >= 0) {
 				s.schType = 'Lecture & Lab';
-			} else if (sectionHtml.indexOf(/<br \/>\nThesis\/Project/i) >= 0) {
+			} else if (sectionHtml.search(/<br \/>\nThesis\/Project/i) >= 0) {
 				s.schType = 'Thesis/Project';
 			}
 			
