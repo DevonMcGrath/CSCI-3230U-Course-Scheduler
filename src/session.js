@@ -200,9 +200,8 @@ function addCourse(req, res, term, subject, code, id) {
 					System.FG['bright-green']);
 				
 				// Update the user and send the result
-				if (!usr.courses) {usr.courses = [];}
-				usr.courses.push({term: term, subject: subject, code: code});
-				User.update({sid: id}, {courses: usr.courses},
+				var course = {term: term, subject: subject, code: code};
+				User.update({sid: id}, {$push: {courses: course}},
 					{multi: false}, function() {});
 				res.send(term + '\t' + subject + '\t' + code);
 			}
@@ -246,9 +245,8 @@ function findSections(req, res, term, subject, code, usr) {
 		
 		// Send the proper result
 		if (found) {
-			if (!usr.courses) {usr.courses = [];}
-			usr.courses.push({term: term, subject: subject, code: code});
-			User.update({sid: usr.id}, {courses: usr.courses},
+			var course = {term: term, subject: subject, code: code};
+			User.update({sid: id}, {$push: {courses: course}},
 				{multi: false}, function() {});
 			res.send(term + '\t' + subject + '\t' + code);
 		} else {
