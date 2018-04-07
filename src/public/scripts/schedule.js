@@ -54,19 +54,6 @@ jQuery(document).ready(function($){
 		});
     }
 
-    $("#course1").mouseup(function() {
-        selected_value = $("input[name='course1']:checked").val();
-        if (selected_value) {
-            times = selected_value.split("-");
-            $("#" + times[0] + times[1].split(":")[0] + times[1].split(":")[1]).remove();
-        }
-    }).change(function() {
-        selected_value = $("input[name='course1']:checked").val();
-        if (selected_value) {
-            times = selected_value.split("-");
-            addEvent(times[0], times[1], times[2], "Course 1", "3");
-        }
-    });
     
     $("#testbutton").click(function() { 
         addEvent("monday", "11:10", "12:30", "Hello", "5");
@@ -110,4 +97,67 @@ jQuery(document).ready(function($){
 			'transform': value
 		});
 	}
+
+	dropdown = $("#dropdown");
+    dropdownhtml = dropdown.html();
+
+    dropdownhtml += '<div class="btn-group">';
+    dropdownhtml += '<div>';
+    dropdownhtml += '<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">CSCI2050';
+    dropdownhtml += '<span class="caret"></span></button>';
+    dropdownhtml += '<ul class="dropdown-menu">';
+    dropdownhtml += '<li class="dropdown-submenu">';
+    dropdownhtml += '<a class="test" tabindex="-1" href="#">Lecture <span class="caret"></span></a>';
+    
+    dropdownhtml += '<ul class="dropdown-submenu">';
+    dropdownhtml += '<li><a type="lecture" day="monday" time="8:10-9:40" tabindex="-1" href="#">Monday 8:10-9:40</a></li>';
+    dropdownhtml += '<li><a type="lecture" day="tuesday" time="11:10-12:30" tabindex="-1" href="#">Tuesday 11:10-12:30</a></li>';
+    dropdownhtml += '</ul></li>';
+
+    dropdownhtml += '<li class="dropdown-submenu">';
+    dropdownhtml += '<a class="test" tabindex="-1" href="#">Lab <span class="caret"></span></a>';
+    
+    dropdownhtml += '<ul class="dropdown-submenu">';
+    dropdownhtml += '<li><a type="lab" day="wednesday" time="8:10-9:40" tabindex="-1" href="#">Wednesday 8:10-9:40</a></li>';
+    dropdownhtml += '<li><a type="lab" day="thursday" time="11:10-12:30" tabindex="-1" href="#">Thursday 11:10-12:30</a></li>';
+    dropdownhtml += '</ul></li>';
+
+    dropdownhtml += '<li class="dropdown-submenu">';
+    dropdownhtml += '<a class="test" tabindex="-1" href="#">Tutorial <span class="caret"></span></a>';
+    
+    dropdownhtml += '<ul class="dropdown-submenu">';
+    dropdownhtml += '<li><a type="tutorial" day="friday" time="8:10-9:40" tabindex="-1" href="#">Friday 8:10-9:40</a></li>';
+    dropdownhtml += '<li><a type="tutorial" day="monday" time="11:10-12:30" tabindex="-1" href="#">Monday 11:10-12:30</a></li>';
+    dropdownhtml += '</ul></li>';
+    dropdownhtml += '</ul>'
+    dropdownhtml += '</div>';
+
+    dropdown.html(dropdownhtml);
+
+
+    $('.dropdown-submenu').on("click", function(e){
+        $(this).next('ul').toggle();
+        e.stopPropagation();
+        e.preventDefault();
+      });
+
+	  $('.dropdown-submenu a').on("click", function(e){
+		var day = $(this).attr("day");
+		var time = $(this).attr("time");
+		var type = $(this).attr("type");
+
+		if(day && time) {
+			var text = $(this).text();
+			if (text.indexOf("x") != -1) {
+				$("#" + day + time.split("-")[0].split(":")[0] + time.split("-")[0].split(":")[1]).remove();
+				$(this).text($(this).text().replace("x", ""));
+				console.log("exists!");
+			} else {
+				addEvent(day, time.split("-")[0], time.split("-")[1], type, "5");
+				$(this).text($(this).text() + " x");
+			}
+        	//addEvent("wednesday", "15:40", "17:00", "Class", "1");
+    
+		}
+      });
 });
