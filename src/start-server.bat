@@ -26,3 +26,4 @@ ECHO =======================
 
 REM Start the node server
 node server.js
+pause
