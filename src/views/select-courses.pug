@@ -2,17 +2,71 @@ extends layout
 block header
 	link(rel="stylesheet", href="/styles/select-courses.css")
 	link(rel="stylesheet", href="/styles/styles.css")
+	script(src="/scripts/select-courses.js")
 
 
 block precontent
 block content
-	h1 Here are your selected courses
-	div(id="selected-courses" class="border-box text-vcenter")
-		p Course 1
-		p Course 2
-		p Course 3
-	h1 Please select any electives you want (Either search by Name or Course Code)
-	div(id="elective-courses")
-		p Course 1
-		p Course 2
-		p Course 3
+	div(id="usercourses")
+		table(id="selectedcourses")
+			thead
+				tr
+					td Semester
+					td Subject
+					td Code
+					td Delete?
+			tbody
+	div(id="useraddcourses")
+		select(id="term")
+			option(value="201701") 201701
+		select(id="subject")
+			option ALSU - Academic Learning and Success
+			option AEDT - Adult Education and Digital Tech
+			option ANTH - Anthrpology
+			option APBS - Applied Bioscience
+			option AUTE - Automotive Engineering
+			option BIOL - Biology
+			option BUSI - Business
+			option CHEM - Chemistry
+			option CHIN - Chinese Studies
+			option COMM - Communications
+			option CSCI - Computer Science
+			option CRMN - Criminology and Justice
+			option ECON - Economics
+			option EDUC - Education
+			option ELEE - Electrical Engineering
+			option ENGR - Engineering
+			option ENGL - English
+			option EAP - English for Academic Purposes
+			option ENVS - Environmental Science
+			option FSCI - Forensiv Science
+			option FREN - French
+			option GRMN - German
+			option HLSC - Health Science
+			option HIST - History
+			option INDG - Indigenous Studies
+			option INFR - Information Technology
+			option LGLS - Legal Studies
+			option MANE - Manufacturing Engineering
+			option MITS - Masters of IT Security
+			option MTSC - Materials Science
+			option MATH - Mathematics
+			option MECE - Mechanical Engineering
+			option MLSC - Medical Lab Science
+			option MCSC - Modelling and Computational Science
+			option NUCL - Nuclear
+			option PHIL - Philosophy
+			option PHY - Physics
+			option POSC - Political Science
+			option PSYC - Psychology
+			option RADI - Radiation Science
+			option SCIE - Science
+			option SCCO - Science Co-op Work Term
+			option SSCI - Social Science
+			option SOCI - Sociology
+			option SOFE - Software Engineering
+			option SPAN - Spanish
+			option STAT - Statistics
+		input(type="txt" id="code")
+		button(class="btn" id="submit") Submit
+	div(id="results")

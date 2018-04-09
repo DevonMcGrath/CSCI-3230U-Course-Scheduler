@@ -1,9 +1,20 @@
-#selected-courses {
-    background-colour: cyan;
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
 }
 
-.text-vcenter {
-    display: table-cell;
-    text-align: center;
-    vertical-align: middle;
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+tr:nth-child(even) {
+    background-color: #dddddd;
+}
+
+#useraddcourses {
+    width: 800px;
+    margin: 0 auto;
 }

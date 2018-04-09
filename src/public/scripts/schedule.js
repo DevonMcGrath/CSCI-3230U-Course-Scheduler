@@ -112,8 +112,8 @@ jQuery(document).ready(function($){
 
 	//Filling in the select options, waiting 2 seconds on load to ensure everythings loaded in properly
 	setTimeout(function() {
-		courses = user.courses;
-		$.each(courses, function(count, course) {
+		usercourses = user.courses;
+		$.each(usercourses, function(count, course) {
 			//Make divs for each lecture/lab/tutorial to attach to.
 			courseColours[course["code"]] = count + 1;
 			dropdownhtml += "<div>";
@@ -129,7 +129,7 @@ jQuery(document).ready(function($){
 
 
 		//Fill in each lecture/lab/tutorial
-		$.each(courses, function(count, course) {
+		$.each(usercourses, function(count, course) {
 			getSections(course["term"], course["subject"], course["code"], function(data, err) {
 				//Get each HTML Object to append to
 				var lecture = $("#" + course["subject"] + course["code"] + 'lecture');
@@ -141,10 +141,8 @@ jQuery(document).ready(function($){
 				laboratory.append("<option> </option>");
 				tutorial.append("<option> </option>");
 
-
 				//Cycle through each "data" that we got from getSections to parse and append to the proper HTML Object
 				$.each(data, function(key, courses) {
-
 					// The way each element is appended is to store each cruicial piece of information in the "Value" which in thise case is COURSE:STARTTIME:ENDTIME
 					//		then print it out for the user to select it
 
