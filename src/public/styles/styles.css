@@ -127,6 +127,16 @@ input[type=text] {padding: 8px;}
 	background-color: lightblue;
 }
 
+#user-info select {
+	padding: 5px;
+	margin-left: 8px;
+	border-radius: 4px;
+}
+
+#banner-courses {
+	margin-left: 8px;
+}
+
 @media screen and (max-width: 675px) {
 	body {padding: 0;}
 	.pre-nav-op {display: block;}

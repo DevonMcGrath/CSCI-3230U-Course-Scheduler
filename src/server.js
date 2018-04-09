@@ -161,7 +161,8 @@ function handleUserCmd(req, res, id) {
 	// Get user info
 	if (cmd == 'GETINFO') {
 		session.getInfo(id, function(info) {
-			res.send(info);
+			info.sid = '';
+			session.sendJSON(req, res, info);
 		});
 	}
 	

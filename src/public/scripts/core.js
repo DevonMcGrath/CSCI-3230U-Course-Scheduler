@@ -5,7 +5,8 @@
 
 var USER_URI = '/user', user = null, pageStatus = 0;
 
-function User(term, courses) {
+function User(data, term, courses) {
+	this.data = data;
 	this.term = term;
 	this.courses = courses;
 	
@@ -15,7 +16,7 @@ function User(term, courses) {
 		
 		// Create the HTML to display to the user
 		var t = this.term;
-		var html = 'Term: <span class="term">' + t + '</span> | Courses: ';
+		var html = 'Courses: ';
 		var c = this.courses? this.courses : [], n = c.length? c.length : 0;
 		for (var i = 0; i < n; i ++) {
 			if (c[i].term != t) {continue;}
@@ -29,6 +30,9 @@ function User(term, courses) {
 		}
 		$('#user-info').css('display', 'block');
 		$('#banner-courses').html(html);
+		
+		// Set the selected term
+		$('#user-info select').val(t);
 	}
 }
 
@@ -182,29 +186,25 @@ $(document).ready(function() {
 	
 	// Get the user info
 	postData(USER_URI, 'cmd=GETINFO', function(data, err) {
+		
+		// Some error occurred
 		if (err) {
 			user = new User('Unavailable');
 			user.updateInfo();
+			pageStatus = 2;
 			return;
 		}
 		
 		// Create the user
-		var lines = data.split('\n'), n = lines.length;
-		var courses = [];
-		for (var i = 1; i < n; i ++) {
-			var info = lines[i].split('\t');
-			var course = {term: info[0], subject: info[1], code: info[2]};
-			courses.push(course);
-		}
-		
-		user = new User(lines[0], courses);
+		if (!data.courses) {data.courses = []};
+		user = new User(data, data.term, data.courses);
 		user.updateInfo();
 		
 		/* ------------------------ COURSE ADDITION TEST CODE ---- */
-		addCourse('201701', 'CSCI', '1061U');//FIXME remove
-		addCourse('201701', 'CSCI', '2050U');//FIXME remove
-		//removeCourse('201701', 'CSCI', '2050U');//FIXME remove
-		setTerm('201701');//FIXME remove
+		addCourse('201801', 'CSCI', '1061U');//FIXME remove
+		addCourse('201801', 'CSCI', '2050U');//FIXME remove
+		//removeCourse('201801', 'CSCI', '2050U');//FIXME remove
+		setTerm('201801');//FIXME remove
 		/////////////////////////////////////////////////////////////
 		
 		// Set the page status to 2 after the user data has loaded
@@ -212,7 +212,7 @@ $(document).ready(function() {
 	});
 	
 	// ---------------------------- SECTION GET TEST ----- */
-	getSections('201701', 'CSCI', '1061U', function(data, err) {
+	getSections('201801', 'CSCI', '1061U', function(data, err) {
 		console.log(data);
 	});//FIXME remove
 	//////////////////////////////////////////////////////////

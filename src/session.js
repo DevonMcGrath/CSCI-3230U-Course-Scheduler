@@ -129,22 +129,10 @@ function userExists(id, callback) {
  */
 function getInfo(id, callback) {
 	User.find({sid: id}).then(function(results) {
-		var found = results.length > 0;
-		var info = '';
 		
-		// If something was found, create the info
-		if (found) {
-			var usr = results[0];
-			info = usr.term;
-			var courses = usr.courses, n = courses.length? courses.length : 0;
-			for (var i = 0; i < n; i ++) {
-				var c = courses[i];
-				info = info + '\n' + c.term + '\t' + c.subject + '\t' + c.code;
-			}
-		}
-		
-		// Call the callback with the info
-		callback(info);
+		// Call the callback with an object
+		var res = results.length == 0? {} : results[0];
+		callback(res);
 	});
 }
 
