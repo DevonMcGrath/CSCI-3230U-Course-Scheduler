@@ -27,7 +27,8 @@ function User(term, courses) {
 		if (n == 0) {
 			html += 'None';
 		}
-		$('#user-info').css('display', 'block').html(html);
+		$('#user-info').css('display', 'block');
+		$('#banner-courses').html(html);
 	}
 }
 
@@ -65,7 +66,7 @@ function postData(url, data, callback) {
 }
 
 /** Removes a course that the user has selected. */
-function removeCourse(term, subject, code) {
+function removeCourse(term, subject, code, callback) {
 	
 	// Encode the fields
 	var name = subject + ' ' + code;
@@ -94,11 +95,16 @@ function removeCourse(term, subject, code) {
 			user.courses = newCourses;
 			user.updateInfo();
 		}
+		
+		// Call the callback
+		if (callback) {
+			callback(data, err);
+		}
 	});
 }
 
 /** Adds a course to the user's selection. */
-function addCourse(term, subject, code) {
+function addCourse(term, subject, code, callback) {
 	
 	// Encode the fields
 	term = term? encodeURIComponent(term) : '';
@@ -122,6 +128,11 @@ function addCourse(term, subject, code) {
 			log('could not add "' + name + '" for term "' + term +
 				'". Server responded with "' + data + '"');
 		}
+		
+		// Call the callback
+		if (callback) {
+			callback(data, err);
+		}
 	});
 }
 
@@ -139,7 +150,7 @@ function getSections(term, subject, code, callback) {
 }
 
 /** Sets the term the user is viewing. */
-function setTerm(term) {
+function setTerm(term, callback) {
 	
 	// Encode the term
 	term = term? encodeURIComponent(term) : '';
@@ -157,6 +168,11 @@ function setTerm(term) {
 		// Print an error
 		else if (err) {
 			log('could not set term to "' + term + '"');
+		}
+		
+		// Call the callback
+		if (callback) {
+			callback(data, err);
 		}
 	});
 }

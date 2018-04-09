@@ -24,6 +24,15 @@ app.use(bodyParser.json());
 app.set('views', __dirname + '/views');
 app.set('view engine', 'pug');
 
+var terms = null;
+webParser.getTerms(function(result) {
+	terms = [];
+	var n = result? result.length : 0;
+	for (var i = 0; i < n && i < 3; i ++) {
+		terms.push(result[i]);
+	}
+});
+
 /* ----------------------------- BEGIN ROUTES ----------------------------- */
 app.use(function(req, res, next) {
 	var now = new Date();
@@ -42,22 +51,22 @@ app.use(function(req, res, next) {
 
 // Home page
 app.get('/', function(req, res) {
-	res.render('index', {'title': 'UOIT Course Scheduler'});
+	res.render('index', {'title': 'UOIT Course Scheduler', 'terms': terms});
 });
 
 // Select Courses page
 app.get('/select-courses', function(req, res) {
-	res.render('select-courses', {'title': 'Select Courses'});
+	res.render('select-courses', {'title': 'Select Courses', 'terms': terms});
 });
 
 // Schedule Creator page
 app.get('/schedule-creator', function(req, res) {
-	res.render('schedule-creator', {'title': 'Schedule Creator'});
+	res.render('schedule-creator', {'title': 'Schedule Creator', 'terms': terms});
 });
 
 // Program Browser page
 app.get('/programs', function(req, res) {
-	res.render('programs', {'title': 'Program Browser'});
+	res.render('programs', {'title': 'Program Browser', 'terms': terms});
 });
 
 // >>>>>>>>>>>>>>>>>>>>>>>> AJAX REQUESTS
@@ -198,7 +207,7 @@ function handleUserCmd(req, res, id) {
 // 404 Error handling
 app.use(function(req, res) {
 	res.status(404);
-	res.render('error-404', {'title': 'Page not found! | UOIT Course Scheduler'});
+	res.render('error-404', {'title': 'Page not found! | UOIT Course Scheduler', 'terms': terms});
 });
 
 /* ----------------------------- END ROUTES ----------------------------- */
