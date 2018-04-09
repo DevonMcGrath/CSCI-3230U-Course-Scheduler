@@ -24,14 +24,25 @@ app.use(bodyParser.json());
 app.set('views', __dirname + '/views');
 app.set('view engine', 'pug');
 
-var terms = null;
+var terms = [];
 webParser.getTerms(function(result) {
 	terms = [];
 	var n = result? result.length : 0;
 	for (var i = 0; i < n && i < 3; i ++) {
 		terms.push(result[i]);
 	}
+	startServer();
 });
+
+// Starts the server
+function startServer() {
+	
+	// Start listening
+	app.listen(PORT, function() {
+		System.out.println('Node server listening on port: ' + PORT, System.FG['bright-magenta']);
+	});
+	
+}
 
 /* ----------------------------- BEGIN ROUTES ----------------------------- */
 app.use(function(req, res, next) {
@@ -211,8 +222,3 @@ app.use(function(req, res) {
 });
 
 /* ----------------------------- END ROUTES ----------------------------- */
-
-// Start listening
-app.listen(PORT, function() {
-	System.out.println('Node server listening on port: ' + PORT, System.FG['bright-magenta']);
-});
