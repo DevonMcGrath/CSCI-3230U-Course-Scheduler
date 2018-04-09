@@ -145,12 +145,11 @@ jQuery(document).ready(function($){
 				$.each(data, function(key, courses) {
 					// The way each element is appended is to store each cruicial piece of information in the "Value" which in thise case is COURSE:STARTTIME:ENDTIME
 					//		then print it out for the user to select it
-
 					if(courses["times"][0]["scheduleType"] == "Laboratory"){
 						laboratory.append('<option value="' + course["code"] + ":" +courses["times"][0]["day"] + ":" + convertTohhmm(courses["times"][0]["start"]) + "-" + convertTohhmm(courses["times"][0]["end"]) + ':Laboratory:'+ courses["crn"] + '">' + courses["times"][0]["day"]+ ":" + convertTohhmm(courses["times"][0]["start"]) + "-" + convertTohhmm(courses["times"][0]["end"]) + "</option>");
 					} 
 					if(courses["times"][0]["scheduleType"] == "Tutorial"){
-						laboratory.append('<option value="' + course["code"] + ":" + courses["times"][0]["day"] + ":" + convertTohhmm(courses["times"][0]["start"]) + "-" + convertTohhmm(courses["times"][0]["end"]) + ':Tutorial:' + courses["crn"] + '">' + courses["times"][0]["day"] + ":" + convertTohhmm(courses["times"][0]["start"]) + "-" + convertTohhmm(courses["times"][0]["end"]) + "</option>");
+						tutorial.append('<option value="' + course["code"] + ":" + courses["times"][0]["day"] + ":" + convertTohhmm(courses["times"][0]["start"]) + "-" + convertTohhmm(courses["times"][0]["end"]) + ':Tutorial:' + courses["crn"] + '">' + courses["times"][0]["day"] + ":" + convertTohhmm(courses["times"][0]["start"]) + "-" + convertTohhmm(courses["times"][0]["end"]) + "</option>");
 					} 
 					if(courses["times"][0]["scheduleType"] == "Lecture"){
 						//Lecture needs to be modified, as there's 2 times commonly per 1 selection

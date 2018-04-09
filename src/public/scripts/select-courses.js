@@ -5,11 +5,21 @@ jQuery(document).ready(function($){
     var results = $("#results");
 
 
+    function convertSemeseter(input) {
+        year = input.slice(0, 4);
+        semester = (input.slice(4) == '01') ? "Winter" : (input.slice(4) == '05') ? "Summer" : "Fall";
+        return semester + " " + year;
+    }
+
+    function refreshTable() {
+        $("#selectedcourses > tbody > tr").remove();
+            $.each(user.courses, function(count, course) {
+                table.append('<tr><td>' + convertSemeseter(course["term"]) + '</td><td>' + course["subject"] + '</td><td>' + course["code"] + '</td><td><button class="btn" id="delete">Delete!</button></td></tr>');
+            });
+    }
 
     setTimeout(function() {
-        $.each(user.courses, function(count, course) {
-            table.append('<tr><td>' + course["term"] + '</td><td>' + course["subject"] + '</td><td>' + course["code"] + '</td><td><button class="btn" id="delete">Delete!</button></td></tr>');
-        });
+        refreshTable()
     }, 2000);
 
 
@@ -24,10 +34,7 @@ jQuery(document).ready(function($){
 
         removeCourse(courseinfo[0], courseinfo[1], courseinfo[2], function(data, err) {
             results.html("<h2>Successfully Removed Course!</h2>");
-            $("#selectedcourses > tbody > tr").remove();
-            $.each(user.courses, function(count, course) {
-                table.append('<tr><td>' + course["term"] + '</td><td>' + course["subject"] + '</td><td>' + course["code"] + '</td><td><button class="btn" id="delete">Delete!</button></td></tr>');
-            });
+            refreshTable()
         });
     });
 
@@ -47,20 +54,14 @@ jQuery(document).ready(function($){
             // If semester is not the same, set the semester to the changed one
             if (user.term != semester) {
                 setTerm(semester);
-
                 //TODO: Clear current list, since aren't offered the same in different semesters
             }
 
             //Add Course
             addCourse(semester, subject, code, function(val, err) {
-                console.log("Data: " + val);
-                console.log("Err: " + err);
                 if (val.length > 1) {
                     results.html("<h2> Successfully Added the Course!</h2>");
-                    $("#selectedcourses > tbody > tr").remove();
-                    $.each(user.courses, function(count, course) {
-                        table.append('<tr><td>' + course["term"] + '</td><td>' + course["subject"] + '</td><td>' + course["code"] + '</td><td><button class="btn" id="delete">Delete!</button></td></tr>');
-                    });
+                    refreshTable()
                 } else {
                     results.html("<h2> Unable to add course! Did you make sure the code is correct?</h2>");
                 }
