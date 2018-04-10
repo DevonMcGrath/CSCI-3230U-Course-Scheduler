@@ -251,7 +251,7 @@ function setSectionSelected(term, crn, selected, callback) {
 	// Encode the fields
 	term = term? encodeURIComponent(term) : '';
 	crn = crn? encodeURIComponent(crn) : '';
-	selected = selected? '1' : '0';
+	selected = selected? '1' : '';
 	
 	// Tell the server to update the state
 	postData(USER_URI, 'cmd=SELECTSECTION&term=' + term + '&crn=' + crn +
