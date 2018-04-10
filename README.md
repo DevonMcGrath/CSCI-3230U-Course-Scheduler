@@ -4,7 +4,7 @@
 - [Martin Tuzim](https://github.com/Nomulous)
 
 ## Description
-One of the challenges students (especially first-years) face is creating a good schedule. It can be very time consuming to create a good schedule. This web application allows users to create schedules for a given semester and interactively select sections to include. The resulting schedule can be exported to an image (of the schedule) or a CSV file of section CRNs.
+One of the challenges students (especially first-years) face is creating a good schedule. It can be very time consuming to create a good schedule. This web application allows users to create schedules for a given semester and interactively select sections to include. The resulting schedule with the selected CRNs can be downloaded to easily enter into MyCampus.
 
 ## Running the Project Locally
 ### Requirements:
