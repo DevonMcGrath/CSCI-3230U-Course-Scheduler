@@ -34,7 +34,7 @@ code modified from: https://github.com/CodyHouse/schedule-template
     display: none;
   }
   
-  @media only screen and (min-width: 800px) {
+  @media only screen and (min-width: 600px) {
     .cd-schedule {
       width: 90%;
       max-width: 1400px;
@@ -49,7 +49,7 @@ code modified from: https://github.com/CodyHouse/schedule-template
     display: none;
   }
   
-  @media only screen and (min-width: 800px) {
+  @media only screen and (min-width: 600px) {
     .cd-schedule .timeline {
       display: block;
       position: absolute;
@@ -81,7 +81,7 @@ code modified from: https://github.com/CodyHouse/schedule-template
     }
   }
   
-  @media only screen and (min-width: 1000px) {
+  @media only screen and (min-width: 600px) {
     .cd-schedule .timeline li::after {
       width: calc(100% - 60px);
       left: 60px;
@@ -169,7 +169,7 @@ code modified from: https://github.com/CodyHouse/schedule-template
     }
   }
   
-  @media only screen and (min-width: 800px) {
+  @media only screen and (min-width: 600px) {
     .cd-schedule .events {
       float: left;
       width: 100%;
@@ -245,7 +245,7 @@ code modified from: https://github.com/CodyHouse/schedule-template
     }
   }
   
-  @media only screen and (min-width: 1000px) {
+  @media only screen and (min-width: 600px) {
     .cd-schedule .events {
       /* 60px is the .timeline element width */
       width: calc(100% - 60px);
@@ -266,7 +266,7 @@ code modified from: https://github.com/CodyHouse/schedule-template
     font-size: 1.6rem;
   }
   
-  @media only screen and (min-width: 800px) {
+  @media only screen and (min-width: 600px) {
     .cd-schedule .event-name {
       font-size: 1.6rem;
     }
@@ -380,3 +380,166 @@ code modified from: https://github.com/CodyHouse/schedule-template
     background: grey;
   }
   
+
+  /* Print CSS */
+  @media only print {
+    body * { visibility: hidden; }
+    .cd-schedule * { visibility: visible; }
+    .cd-schedule { 
+      width: 90%; 
+      position: absolute; 
+      top: 40px;
+      left: 30px;
+    }
+    .cd-schedule .events {
+      float: left;
+      width: 100%;
+    }
+    .cd-schedule .events .events-group {
+      width: 20%;
+      float: left;
+      border: 1px solid #EAEAEA;
+      /* reset style */
+      margin-bottom: 0;
+    }
+    .cd-schedule .events .events-group:not(:first-of-type) {
+      border-left-width: 0;
+    }
+    .cd-schedule .events .top-info {
+      /* vertically center its content */
+      display: table;
+      height: 50px;
+      border-bottom: 1px solid #EAEAEA;
+      /* reset style */
+      padding: 0;
+    }
+    .cd-schedule .events .top-info > span {
+      /* vertically center inside its parent */
+      display: table-cell;
+      vertical-align: middle;
+      padding: 0 .5em;
+      text-align: center;
+      /* reset style */
+      font-weight: normal;
+      margin-bottom: 0;
+    }
+    .cd-schedule .events .events-group > ul {
+      height: 950px;
+      /* reset style */
+      display: block;
+      overflow: visible;
+      padding: 0;
+    }
+    .cd-schedule .events .events-group > ul::after {
+      clear: both;
+      content: "";
+      display: block;
+    }
+    .cd-schedule .events .events-group > ul::after {
+      /* reset style */
+      display: none;
+    }
+    .cd-schedule .events .single-event {
+      position: absolute;
+      z-index: 3;
+      /* top position and height will be set using js */
+      width: calc(100% + 2px);
+      left: -1px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), inset 0 -3px 0 rgba(0, 0, 0, 0.2);
+      /* reset style */
+      -ms-flex-negative: 1;
+          flex-shrink: 1;
+      height: auto;
+      max-width: none;
+      margin-right: 0;
+    }
+    .cd-schedule .events .single-event a {
+      padding: 1.2em;
+    }
+    .cd-schedule .events .single-event:last-of-type {
+      /* reset style */
+      margin-right: 0;
+    }
+    .cd-schedule .events .single-event.selected-event {
+      /* the .selected-event class is added when an user select the event */
+      visibility: hidden;
+    }
+    .cd-schedule .event-name {
+      font-size: 1.6rem;
+    }
+    .cd-schedule .events {
+      /* 60px is the .timeline element width */
+      width: calc(100% - 60px);
+      margin-left: 60px;
+    }
+    .cd-schedule .timeline li::after {
+      width: calc(100% - 60px);
+      left: 60px;
+    }
+    .cd-schedule .timeline li span {
+      display: inline-block;
+      -webkit-transform: translateY(-50%);
+          -ms-transform: translateY(-50%);
+              transform: translateY(-50%);
+    }
+    .cd-schedule .timeline li:nth-of-type(2n) span {
+      display: none;
+    }
+    .cd-schedule .events .single-event {
+      width: 40%;
+    }
+  }
+
+
+
+  /* CRN POPUP */
+.popup {
+  width: 100%;
+  height: 100%;
+  display: none;
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  background:rgba(0,0,0,0.75);
+}
+
+.popup-inner {
+  max-width: 700px;
+  width: 90%;
+  padding: 40px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -webkit-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+  box-shadow: 0px 2px 6px rgba(0,0,0,1);
+  border-radius: 3px;
+  background: #fff;
+}
+
+.popup-close {
+  width: 30px;
+  height: 30px;
+  padding-top: 4px;
+  display: inline-block;
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  transition: ease 0.25s all;
+  -webkit-transform: translate(50%, -50%);
+  transform:translate(50%, -50%);
+  border-radius: 1000px;
+  background: rgba(0,0,0,0.8);
+  font-family: Arial, Sans-Serif;
+  font-size: 20px;
+  text-align: center;
+  line-height: 100%;
+  color: #fff;
+}
+
+.popup-close:hover {
+  -webkit-transform: translate(50%, -50%) rotate(180deg);
+  transform:translate(50%, -50%) rotate(180deg);
+  background:rgba(0,0,0,1);
+  text-decoration: none;
+}

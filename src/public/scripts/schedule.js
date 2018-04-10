@@ -259,6 +259,39 @@ jQuery(document).ready(function($){
 			}});
 	}
 
+	//Open
+	$('[data-popup-open]').on('click', function(e) {
+		//Hide the background table
+		$(".cd-schedule").hide();
+		$("#crns > p").remove();
+
+		courseinfo = [];
+		//Get all the CRN Info
+		$.each(inSchedule, function(data) {
+			html = $("#" + data + " em").html();
+			course = html.split("<br>")[0]
+			crn = html.split("<br>")[1];
+			courseinfo.push(course + ": " + crn.split(":")[1]);
+			console.log(course + ": " + crn.split(":")[1]);
+		});
+
+		courseinfo = jQuery.unique(courseinfo);
+
+		$.each(courseinfo, function(data) {
+			$("#crns").append("<p>" + courseinfo[data] + "</p>");
+		});
+
+		var target = $(this).attr('data-popup-open');
+		$('[data-popup="' + target + '"]').fadeIn(350);
+		e.preventDefault();
+	})
+
+	$('[data-popup-close]').on('click', function(e) {
+		$(".cd-schedule").show();
+		var target = $(this).attr('data-popup-close');
+		$('[data-popup="' + target + '"]').fadeOut(350);
+		e.preventDefault();
+	})
 
 	function clearTable() {
 		$.each(inSchedule, function(data) {
