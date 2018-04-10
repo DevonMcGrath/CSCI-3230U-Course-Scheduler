@@ -491,6 +491,17 @@ code modified from: https://github.com/CodyHouse/schedule-template
   }
 
 
+div.course {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+div.course select {
+  display: table-cell;
+  text-align: center;
+}
+
 
   /* CRN POPUP */
 .popup {
