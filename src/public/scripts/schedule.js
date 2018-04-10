@@ -134,7 +134,10 @@ jQuery(document).ready(function($){
 
 	addSetTermListener(function(data, err) {
 		clearTable();
-		$("#dropdown div").empty();
+		$(".course").remove();
+		dropdown.html("");
+		dropdownhtml = "";
+		//console.log("aaaaa");
 		loadCourses();
 	});
 
@@ -161,146 +164,123 @@ jQuery(document).ready(function($){
 
 		//Fill in each lecture/lab/tutorial
 		$.each(usercourses, function(count, course) {
-			getSections(course["term"], course["subject"], course["code"], function(data, err) {
-				//Get each HTML Object to append to
-				var lecture = $("#" + course["subject"] + course["code"] + 'lecture');
-				var laboratory = $("#" + course["subject"] + course["code"] + 'laboratory');
-				var tutorial = $("#" + course["subject"] + course["code"] + 'tutorial');
+			if (course.term == user.term) {
+				getSections(course["term"], course["subject"], course["code"], function(data, err) {
+					//Get each HTML Object to append to
+					var lecture = $("#" + course["subject"] + course["code"] + 'lecture');
+					var laboratory = $("#" + course["subject"] + course["code"] + 'laboratory');
+					var tutorial = $("#" + course["subject"] + course["code"] + 'tutorial');
 
-				//Append Empty Objects to allow first item to be selected
-				lecture.append('<option value="' + course["code"] + 'Lecture"> </option>');
-				laboratory.append('<option value="' + course["code"] + 'Laboratory"> </option>');
-				tutorial.append('<option value	="' + course["code"] + 'Lecture"> </option>');
+					//Append Empty Objects to allow first item to be selected
+					lecture.append('<option value="' + course["code"] + 'Lecture"> </option>');
+					laboratory.append('<option value="' + course["code"] + 'Laboratory"> </option>');
+					tutorial.append('<option value	="' + course["code"] + 'Lecture"> </option>');
 
-				var uniqueTimes = [];
-				//uniqueData = [];
+					var uniqueTimes = [];
+					uniqueData = [];
+					//uniqueData = [];
 
-				for(i = 0; i < data.length; i++) {
-					day = data[i].times[0].day;
-					start = data[i].times[0].start;
-					if(uniqueTimes.indexOf(day + start) === -1) {
-						uniqueTimes.push(day + start);
-						uniqueData.push(data[i]);
+					for(i = 0; i < data.length; i++) {
+						day = data[i].times[0].day;
+						start = data[i].times[0].start;
+						if(uniqueTimes.indexOf(day + start) === -1) {
+							uniqueTimes.push(day + start);
+							uniqueData.push(data[i]);
+						}
 					}
-				}
-				
-
-				//Load User Preloaded Courses
-				$.each(user.data.sections, function(userkey, uservalue) {
-					$.each(uniqueData, function(uKey, uVal) {
-						if(uservalue.crn == uVal.crn) {
-							if(uVal.times[0].scheduleType == "Lecture") {
-								//First Lecture
-								day = uVal.times[0].day;
-								switch (day) {
-									case "M":
-										day = "monday";
-										break;
-									case "T":
-										day = "tuesday";
-										break;
-									case "W":
-										day = "wednesday";
-										break;
-									case "R":
-										day = "thursday";
-										break;
-									case "F":
-										day = "friday";
-										break;
-								}
-								starttime = convertTohhmm(uVal.times[0].start);
-								endtime = convertTohhmm(uVal.times[0].end);
-								CourseType = uVal.times[0].scheduleType;
-								crn = uVal.crn;
-								code = uVal.code;
-								subject = uVal.subject;
-								addEvent(day, starttime, endtime, subject + " " + code + " " + CourseType + "<br />CRN:" + crn, courseColours[code]);	
-								//Second Lecture
-								day = uVal.times[1].day;
-								switch (day) {
-									case "M":
-										day = "monday";
-										break;
-									case "T":
-										day = "tuesday";
-										break;
-									case "W":
-										day = "wednesday";
-										break;
-									case "R":
-										day = "thursday";
-										break;
-									case "F":
-										day = "friday";
-										break;
-								}
-								
-								starttime = convertTohhmm(uVal.times[1].start);
-								endtime = convertTohhmm(uVal.times[1].end);
-								CourseType = uVal.times[1].scheduleType;
-								crn = uVal.crn;
-								code = uVal.code;
-								addEvent(day, starttime, endtime, subject + " " + code + " " + CourseType + "<br />CRN:" + crn, courseColours[code]);	
-							} else {
-								//Lab or
-								day = uVal.times[0].day;
-								switch (day) {
-									case "M":
-										day = "monday";
-										break;
-									case "T":
-										day = "tuesday";
-										break;
-									case "W":
-										day = "wednesday";
-										break;
-									case "R":
-										day = "thursday";
-										break;
-									case "F":
-										day = "friday";
-										break;
-								}
-								starttime = convertTohhmm(uVal.times[0].start);
-								endtime = convertTohhmm(uVal.times[0].end);
-								CourseType = uVal.times[0].scheduleType;
-								crn = uVal.crn;
-								code = uVal.code;
-								sTimeHour = starttime.split(":")[0];
-								sTimeMin = starttime.split(":")[1];
-								subject = uVal.subject;
 					
-								divName = day + sTimeHour + sTimeMin + code + CourseType;
 
-								
-								$.each(inSchedule, function(data) {
-									if(data.indexOf(code + CourseType) >= 0) {
-										$("#" + data).remove();
-										inSchedule[data] =  0;
+					//Load User Preloaded Courses
+					$.each(user.data.sections, function(userkey, uservalue) {
+						$.each(uniqueData, function(uKey, uVal) {
+							if(uservalue.crn == uVal.crn) {
+								if(uVal.times[0].scheduleType == "Lecture") {
+									$.each(uVal.times, function(k, v) {
+										day = v.day;
+										switch (day) {
+											case "M":
+												day = "monday";
+												break;
+											case "T":
+												day = "tuesday";
+												break;
+											case "W":
+												day = "wednesday";
+												break;
+											case "R":
+												day = "thursday";
+												break;
+											case "F":
+												day = "friday";
+												break;
+										}
+										starttime = convertTohhmm(v.start);
+										endtime = convertTohhmm(v.end);
+										CourseType = v.scheduleType;
+										crn = uVal.crn;
+										code = uVal.code;
+										subject = uVal.subject;
+										addEvent(day, starttime, endtime, subject + " " + code + " " + CourseType + "<br />CRN:" + crn, courseColours[code]);	
+									});
+								} else {
+									//Lab or
+									day = uVal.times[0].day;
+									switch (day) {
+										case "M":
+											day = "monday";
+											break;
+										case "T":
+											day = "tuesday";
+											break;
+										case "W":
+											day = "wednesday";
+											break;
+										case "R":
+											day = "thursday";
+											break;
+										case "F":
+											day = "friday";
+											break;
+									}
+									starttime = convertTohhmm(uVal.times[0].start);
+									endtime = convertTohhmm(uVal.times[0].end);
+									CourseType = uVal.times[0].scheduleType;
+									crn = uVal.crn;
+									code = uVal.code;
+									sTimeHour = starttime.split(":")[0];
+									sTimeMin = starttime.split(":")[1];
+									subject = uVal.subject;
+						
+									divName = day + sTimeHour + sTimeMin + code + CourseType;
+
+									
+									$.each(inSchedule, function(data) {
+										if(data.indexOf(code + CourseType) >= 0) {
+											$("#" + data).remove();
+											inSchedule[data] =  0;
+											setSectionSelected(user.term, crn, false, function(d) {
+												//console.log(d);
+											});
+										}
+									});
+									// Check if the
+									if (inSchedule[divName] == 1) {
+									$("#"+ divName).remove();
+										inSchedule[divName] = 0;
 										setSectionSelected(user.term, crn, false, function(d) {
+										//console.log(d);
+									});
+									} else {
+										addEvent(day, starttime, endtime, subject + " " +code + " " + CourseType + "<br />CRN:" + crn, courseColours[code]);	
+										setSectionSelected(user.term, crn, true, function(d) {
 											//console.log(d);
 										});
 									}
-								});
-								// Check if the
-								if (inSchedule[divName] == 1) {
-								$("#"+ divName).remove();
-									inSchedule[divName] = 0;
-									setSectionSelected(user.term, crn, false, function(d) {
-									//console.log(d);
-								});
-								} else {
-									addEvent(day, starttime, endtime, subject + " " +code + " " + CourseType + "<br />CRN:" + crn, courseColours[code]);	
-									setSectionSelected(user.term, crn, true, function(d) {
-										//console.log(d);
-									});
+									//addEvent(day, starttime, endtime, code + " " + CourseType + "<br />CRN:" + crn, courseColours[code]);	
+						
 								}
-								//addEvent(day, starttime, endtime, code + " " + CourseType + "<br />CRN:" + crn, courseColours[code]);	
-					
 							}
-						}
-					});
+						});
 				});
 
 
@@ -328,6 +308,7 @@ jQuery(document).ready(function($){
 					} 
 				});
 			});
+		}
 		});
 		
 		// A listener on the "select" change
@@ -540,6 +521,7 @@ jQuery(document).ready(function($){
 	})
 
 	function clearTable() {
+		dropdownhtml = "";
 		$.each(inSchedule, function(data) {
 			$("#" + data).remove();
 		});
