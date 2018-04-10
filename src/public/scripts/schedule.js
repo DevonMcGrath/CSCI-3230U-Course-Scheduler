@@ -78,12 +78,12 @@ jQuery(document).ready(function($){
 		var currentString = $("#" + day).html();
 
 		// Convert the start time to a timestamp and get the duration, needed to find the length of the box
-        var start = getScheduleTimestamp(starttime),
-            duration = getScheduleTimestamp(endtime) - start;
+		var start = getScheduleTimestamp(starttime),
+			duration = getScheduleTimestamp(endtime) - start;
 
 		// Calculate pixel lengths of where to start and how tall the box is
-        var top = EventSlotHeight * (start - timeLineStart) / TimeLineUnitDuration,
-            height = EventSlotHeight * duration / TimeLineUnitDuration;
+		var top = EventSlotHeight * (start - timeLineStart) / TimeLineUnitDuration,
+			height = EventSlotHeight * duration / TimeLineUnitDuration;
 
 		//Add the box events
 		//	Format is											v Colour      v Size of box
@@ -93,13 +93,13 @@ jQuery(document).ready(function($){
 		//			<em class="event-name"> Text Inside Box</em>
 		//		</a>
 		//	</li>
-        currentString += '<li id="' + (day + starttime.split(":")[0] + starttime.split(":")[1]) + '" class="single-event" data-event="event-' + type + '"';
-        currentString += ' style="top: ' + (top - 1) + 'px; height: ' + (height - 1) + 'px;">';
-        currentString += '<a href="#0"><span class="event-date">' + starttime + ' - ' + endtime + '</span>';
-        currentString += '<em class="event-name">' + msg + '</em></a></li>';
+		currentString += '<li id="' + (day + starttime.split(":")[0] + starttime.split(":")[1]) + '" class="single-event" data-event="event-' + type + '"';
+		currentString += ' style="top: ' + (top - 1) + 'px; height: ' + (height - 1) + 'px;">';
+		currentString += '<a href="#0"><span class="event-date">' + starttime + ' - ' + endtime + '</span>';
+		currentString += '<em class="event-name">' + msg + '</em></a></li>';
 
 		//Append to the list
-        $("#" + day).html(currentString); 
+		$("#" + day).html(currentString); 
     }
 
 
@@ -110,19 +110,28 @@ jQuery(document).ready(function($){
 		return (hours + ":" + minutes);
 	}
 
-	//Filling in the select options, waiting 2 seconds on load to ensure everythings loaded in properly
-	setTimeout(function() {
+
+	addSetTermListener(function(data, err) {
+		clearTable();
+		$("#dropdown div").empty();
+		loadCourses();
+	});
+
+	function loadCourses() {
 		usercourses = user.courses;
+		dropdownhtml = "<h2>Select your courses here!</h2>";
 		$.each(usercourses, function(count, course) {
-			//Make divs for each lecture/lab/tutorial to attach to.
-			courseColours[course["code"]] = count + 1;
-			dropdownhtml += "<div>";
-			dropdownhtml += "Course: " + course["subject"] + course["code"];
-			dropdownhtml += 'Lecture: <select id="' + course["subject"] + course["code"] + 'lecture"></select>';
-			dropdownhtml += 'Laboratory: <select id="' + course["subject"] + course["code"] + 'laboratory"></select>';
-			dropdownhtml += 'Tutorial: <select id="' + course["subject"] + course["code"] + 'tutorial"></select>';
-			dropdownhtml += "</div>";
-			count++;
+			if (course.term == user.term) {
+				//Make divs for each lecture/lab/tutorial to attach to.
+				courseColours[course["code"]] = count + 1;
+				dropdownhtml += "<div>";
+				dropdownhtml += "Course: " + course["subject"] + course["code"];
+				dropdownhtml += 'Lecture: <select id="' + course["subject"] + course["code"] + 'lecture"></select>';
+				dropdownhtml += 'Laboratory: <select id="' + course["subject"] + course["code"] + 'laboratory"></select>';
+				dropdownhtml += 'Tutorial: <select id="' + course["subject"] + course["code"] + 'tutorial"></select>';
+				dropdownhtml += "</div>";
+				count++;
+			}
 
 		});
 		dropdown.html(dropdownhtml);
@@ -162,7 +171,7 @@ jQuery(document).ready(function($){
 				});
 			});
 		});
-
+		
 		// A listener on the "select" change
 		$('select').on('change', function(e) {
 			
@@ -229,6 +238,7 @@ jQuery(document).ready(function($){
 					startTime = valueSelected[6] + ":" + valueSelected[7].split("-")[0];
 					endTime = valueSelected[7].split("-")[1] + ":" + valueSelected[8];
 					if (inSchedule[day + startTime.split(":")[0] +startTime.split(":")[1]] == 1) {
+						alert("Time Conflict! Removing the time slot. Please reselect");
 						$("#" + day + startTime.split(":")[0] +startTime.split(":")[1]).remove();
 						inSchedule[day + startTime.split(":")[0] +startTime.split(":")[1]] = 0;
 					} else {
@@ -246,4 +256,18 @@ jQuery(document).ready(function($){
 						addEvent(day, startTime, endTime, valueSelected[0] + " " + valueSelected[5] + "<br />CRN:" +valueSelected[6], courseColours[valueSelected[0]]);
 					}
 				}
-			}});}, 2000);});
+			}});
+	}
+
+
+	function clearTable() {
+		$.each(inSchedule, function(data) {
+			$("#" + data).remove();
+		});
+	}
+
+	//Filling in the select options, waiting 2 seconds on load to ensure everythings loaded in properly
+	setTimeout(function() {
+		loadCourses();
+	}, 2000);
+});
