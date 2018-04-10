@@ -245,6 +245,31 @@ function setTerm(term, callback) {
 	});
 }
 
+/** Sets the selected state of a section. */
+function setSectionSelected(term, crn, selected, callback) {
+	
+	// Encode the fields
+	term = term? encodeURIComponent(term) : '';
+	crn = crn? encodeURIComponent(crn) : '';
+	selected = selected? '1' : '0';
+	
+	// Tell the server to update the state
+	postData(USER_URI, 'cmd=SELECTSECTION&term=' + term + '&crn=' + crn +
+		'&state=' + selected, function(data, err) {
+		
+		// Log an error
+		if (err || data == '0') {
+			log('failed to set section state for ' + crn +
+				' in term ' + term + ' to ' + selected);
+		}
+		
+		// Call the callback
+		if (callback) {
+			callback(data, err, term, crn, selected);
+		}
+	});
+}
+
 /** Set up the page. */
 $(document).ready(function() {
 	
