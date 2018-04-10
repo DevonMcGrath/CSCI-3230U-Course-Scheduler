@@ -4,6 +4,7 @@
  */
 
 var USER_URI = '/user', user = null, pageStatus = 0;
+var updateListeners = {setTerm: [], addCourse: [], removeCourse: [], getSections: []};
 
 function User(data, term, courses) {
 	this.data = data;
@@ -106,6 +107,17 @@ function removeCourse(term, subject, code, callback) {
 		if (callback) {
 			callback(data, err);
 		}
+		
+		// Call the listeners
+		var listeners = updateListeners.removeCourse;
+		if (listeners) {
+			var count = listeners.length? listeners.length : 0;
+			for (var i = 0; i < count; i ++) {
+				if (listeners[i]) {
+					listeners[i](data, err);
+				}
+			}
+		}
 	});
 }
 
@@ -139,6 +151,17 @@ function addCourse(term, subject, code, callback) {
 		if (callback) {
 			callback(data, err);
 		}
+		
+		// Call the listeners
+		var listeners = updateListeners.addCourse;
+		if (listeners) {
+			var count = listeners.length? listeners.length : 0;
+			for (var i = 0; i < count; i ++) {
+				if (listeners[i]) {
+					listeners[i](data, err);
+				}
+			}
+		}
 	});
 }
 
@@ -153,6 +176,17 @@ function getSections(term, subject, code, callback) {
 	// Get the sections
 	postData(USER_URI, 'cmd=GETSECTIONS&term=' + term +
 		'&subject=' + subject + '&code=' + code, callback);
+	
+	// Call the listeners
+	var listeners = updateListeners.getSections;
+	if (listeners) {
+		var count = listeners.length? listeners.length : 0;
+		for (var i = 0; i < count; i ++) {
+			if (listeners[i]) {
+				listeners[i](data, err);
+			}
+		}
+	}
 }
 
 /** Sets the term the user is viewing. */
@@ -179,6 +213,17 @@ function setTerm(term, callback) {
 		// Call the callback
 		if (callback) {
 			callback(data, err);
+		}
+		
+		// Call the listeners
+		var listeners = updateListeners.setTerm;
+		if (listeners) {
+			var count = listeners.length? listeners.length : 0;
+			for (var i = 0; i < count; i ++) {
+				if (listeners[i]) {
+					listeners[i](data, err);
+				}
+			}
 		}
 	});
 }
@@ -213,3 +258,32 @@ $(document).ready(function() {
 	
 	pageStatus = 1;
 });
+
+/* --------------- LISTENERS --------------- */
+/** Adds a listener to setTerm which is called with the status. */
+function addSetTermListener(callback) {
+	if (callback) {
+		updateListeners.setTerm.push(callback);
+	}
+}
+
+/** Adds a listener to addCourse which is called with the status. */
+function addAddCourseListener(callback) {
+	if (callback) {
+		updateListeners.addCourse.push(callback);
+	}
+}
+
+/** Adds a listener to removeCourse which is called with the status. */
+function addRemoveCourseListener(callback) {
+	if (callback) {
+		updateListeners.removeCourse.push(callback);
+	}
+}
+
+/** Adds a listener to getSections which is called with section data. */
+function addGetSectionsListener(callback) {
+	if (callback) {
+		updateListeners.getSections.push(callback);
+	}
+}
