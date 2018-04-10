@@ -6,6 +6,7 @@ jQuery(document).ready(function($){
 	var dropdownhtml = dropdown.html();			//Current HTML To store
 	var courseColours = {};						//Course Colours, based on "coursetime":n, where n is a number from 1-x 
 	var inSchedule = {};						//Keeping track of which courses are in the schedule to remove them if selected again
+	var uniqueData = [];
 
 	//Global variables for time slot blocks
     var timeLineStart = 0;
@@ -76,8 +77,13 @@ jQuery(document).ready(function($){
 		//Variables For The Course
 		sTimeHour = starttime.split(":")[0];
 		sTimeMin = starttime.split(":")[1];
-		CourseCode = msg.split("<br />")[0].split(" ")[0];
-		CourseType = msg.split("<br />")[0].split(" ")[1];
+		if (msg.split("<br />")[0].split(" ").length == 2) {
+			CourseCode = msg.split("<br />")[0].split(" ")[0];
+			CourseType = msg.split("<br />")[0].split(" ")[1];
+		} else {
+			CourseCode = msg.split("<br />")[0].split(" ")[1];
+			CourseType = msg.split("<br />")[0].split(" ")[2];
+		}
 
 		divName = day + sTimeHour + sTimeMin + CourseCode + CourseType;
 
@@ -167,7 +173,7 @@ jQuery(document).ready(function($){
 				tutorial.append('<option value	="' + course["code"] + 'Lecture"> </option>');
 
 				var uniqueTimes = [];
-				var uniqueData = [];
+				//uniqueData = [];
 
 				for(i = 0; i < data.length; i++) {
 					day = data[i].times[0].day;
@@ -208,7 +214,8 @@ jQuery(document).ready(function($){
 								CourseType = uVal.times[0].scheduleType;
 								crn = uVal.crn;
 								code = uVal.code;
-								addEvent(day, starttime, endtime, code + " " + CourseType + "<br />CRN:" + crn, courseColours[code]);	
+								subject = uVal.subject;
+								addEvent(day, starttime, endtime, subject + " " + code + " " + CourseType + "<br />CRN:" + crn, courseColours[code]);	
 								//Second Lecture
 								day = uVal.times[1].day;
 								switch (day) {
@@ -228,12 +235,13 @@ jQuery(document).ready(function($){
 										day = "friday";
 										break;
 								}
+								
 								starttime = convertTohhmm(uVal.times[1].start);
 								endtime = convertTohhmm(uVal.times[1].end);
 								CourseType = uVal.times[1].scheduleType;
 								crn = uVal.crn;
 								code = uVal.code;
-								addEvent(day, starttime, endtime, code + " " + CourseType + "<br />CRN:" + crn, courseColours[code]);	
+								addEvent(day, starttime, endtime, subject + " " + code + " " + CourseType + "<br />CRN:" + crn, courseColours[code]);	
 							} else {
 								//Lab or
 								day = uVal.times[0].day;
@@ -261,6 +269,7 @@ jQuery(document).ready(function($){
 								code = uVal.code;
 								sTimeHour = starttime.split(":")[0];
 								sTimeMin = starttime.split(":")[1];
+								subject = uVal.subject;
 					
 								divName = day + sTimeHour + sTimeMin + code + CourseType;
 
@@ -282,7 +291,7 @@ jQuery(document).ready(function($){
 									//console.log(d);
 								});
 								} else {
-									addEvent(day, starttime, endtime, code + " " + CourseType + "<br />CRN:" + crn, courseColours[code]);	
+									addEvent(day, starttime, endtime, subject + " " +code + " " + CourseType + "<br />CRN:" + crn, courseColours[code]);	
 									setSectionSelected(user.term, crn, true, function(d) {
 										//console.log(d);
 									});
@@ -328,6 +337,7 @@ jQuery(document).ready(function($){
 			if(this.value) {
 				var valueSelected = this.value.split(":");
 				var day;
+				
 
 				//Convert number into word
 				
@@ -366,6 +376,15 @@ jQuery(document).ready(function($){
 
 					divName = day + sTimeHour + sTimeMin + CourseCode + CourseType;
 
+					crn = valueSelected[10];
+					var subject;
+
+					$.each(uniqueData, function(key, value) {
+						if (value.crn == crn) {
+							subject = value.subject;
+						}
+					});
+
 
 					// Check if the course exists
 					if (inSchedule[divName] == 1) {
@@ -375,7 +394,7 @@ jQuery(document).ready(function($){
 							//console.log(d);
 						});
 					} else {
-						addEvent(day, startTime, endTime, valueSelected[0] + " " + valueSelected[9] + "<br />CRN:" + valueSelected[10], courseColours[valueSelected[0]]);
+						addEvent(day, startTime, endTime, subject + " " + valueSelected[0] + " " + valueSelected[9] + "<br />CRN:" + valueSelected[10], courseColours[valueSelected[0]]);
 						setSectionSelected(user.term, valueSelected[9], true, function(d) {
 							//console.log(d);
 						});
@@ -418,7 +437,7 @@ jQuery(document).ready(function($){
 							//console.log(d);
 						});
 					} else {
-						addEvent(day, startTime, endTime, valueSelected[0] + " " + valueSelected[9] + "<br />CRN:" + valueSelected[10], courseColours[valueSelected[0]]);
+						addEvent(day, startTime, endTime, subject + " " + valueSelected[0] + " " + valueSelected[9] + "<br />CRN:" + valueSelected[10], courseColours[valueSelected[0]]);
 						setSectionSelected(user.term, valueSelected[10], true, function(d) {
 							//console.log(d);
 						});
@@ -438,6 +457,15 @@ jQuery(document).ready(function($){
 
 					divName = day + sTimeHour + sTimeMin + CourseCode + CourseType;
 
+					crn = valueSelected[6];
+					var subject;
+
+					$.each(uniqueData, function(key, value) {
+						if (value.crn == crn) {
+							subject = value.subject;
+						}
+					});
+
 
 					$.each(inSchedule, function(data) {
 						if(data.indexOf(CourseCode + CourseType) >= 0) {
@@ -455,7 +483,7 @@ jQuery(document).ready(function($){
 						setSectionSelected(user.term, valueSelected[6], true, function(d) {
 							//console.log(d);
 						});
-						addEvent(day, startTime, endTime, valueSelected[0] + " " + valueSelected[5] + "<br />CRN:" +valueSelected[6], courseColours[valueSelected[0]]);
+						addEvent(day, startTime, endTime, subject + " " + valueSelected[0] + " " + valueSelected[5] + "<br />CRN:" +valueSelected[6], courseColours[valueSelected[0]]);
 					}
 				} else {
 					$.each(inSchedule, function(data) {
