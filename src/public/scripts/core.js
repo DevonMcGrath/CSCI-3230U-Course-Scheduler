@@ -17,7 +17,7 @@ function User(data, term, courses) {
 		
 		// Create the HTML to display to the user
 		var t = this.term;
-		var html = 'Courses: ';
+		var html = '';
 		var c = this.courses? this.courses : [], n = c.length? c.length : 0;
 		var added = 0;
 		for (var i = 0; i < n; i ++) {
@@ -26,16 +26,16 @@ function User(data, term, courses) {
 			html += '<span class="btn-simple" onclick="removeCourse(\'' + c[i].term +
 				'\', \'' + c[i].subject + '\', \'' + c[i].code + '\');"' +
 				' title="Remove course">' + course + '</span>';
-			added++
+			added ++;
 		}
 		if (added == 0) {
 			html += 'None';
 		}
 		$('#user-info').css('display', 'block');
-		$('#banner-courses').html(html);
+		$('.banner-courses').html(html);
 		
 		// Set the selected term
-		$('#user-info select').val(t);
+		$('.banner-terms select').val(t);
 	}
 }
 
@@ -149,7 +149,7 @@ function addCourse(term, subject, code, callback) {
 		
 		// Call the callback
 		if (callback) {
-			callback(data, err);
+			callback(data, err, term, subject, code);
 		}
 		
 		// Call the listeners
@@ -158,7 +158,7 @@ function addCourse(term, subject, code, callback) {
 			var count = listeners.length? listeners.length : 0;
 			for (var i = 0; i < count; i ++) {
 				if (listeners[i]) {
-					listeners[i](data, err);
+					listeners[i](data, err, term, subject, code);
 				}
 			}
 		}
@@ -252,8 +252,9 @@ $(document).ready(function() {
 	});
 	
 	// Add a listener to update the term
-	$('#user-info select').change(function() {
-		setTerm($('#user-info select').val());
+	$('.banner-terms select').change(function() {
+		$('.banner-terms select').val(this.value);
+		setTerm(this.value);
 	});
 	
 	pageStatus = 1;

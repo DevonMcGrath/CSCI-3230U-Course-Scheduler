@@ -127,14 +127,39 @@ input[type=text] {padding: 8px;}
 	background-color: lightblue;
 }
 
-#user-info select {
+.banner-terms select {
 	padding: 5px;
-	margin-left: 8px;
+	margin: 0 8px;
 	border-radius: 4px;
 }
 
-#banner-courses {
-	margin-left: 8px;
+.spacing {
+	margin: 10px 0;
+}
+
+.status {
+	padding: 5px;
+	border-radius: 3px;
+}
+
+.grey {
+	background-color: #CCCCCC;
+	border-left: 5px solid #AAAAAA;
+}
+
+.green {
+	background-color: #CFFFCF;
+	border-left: 5px solid #AAFFAA;
+}
+
+.red {
+	background-color: #FFCFCF;
+	border-left: 5px solid #FF0000;
+}
+
+.yellow {
+	background-color: #FFEF20;
+	border-left: 5px solid #CFBF00;
 }
 
 @media screen and (max-width: 675px) {

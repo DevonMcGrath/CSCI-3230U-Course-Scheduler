@@ -30,13 +30,14 @@ html
 				a(href="/programs") Program Browser
 		
 		div(id="user-info")
-			span(class="banner-terms") Terms:
+			span(class="banner-terms") Term:
 				select
 					each term in terms
 						-year = term.slice(0, 4)
 						-t = term.slice(4)
 						option(value= term)= (t == '01'? 'Winter ' : (t == '05'? 'Summer ' : 'Fall ')) + year
-			span(id="banner-courses") None
+			span Courses: 
+			span(class="banner-courses") None
 		
 		block precontent
 		

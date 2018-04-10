@@ -144,14 +144,65 @@ function clearSelection() {
 
 /** Adds all the selected courses to the current term. */
 function addCourses() {
-	var n = courses? courses.length : 0;
+	
+	// Get the selected courses
+	var n = courses? courses.length : 0, added = [];
 	for (var i = 0; i < n; i ++) {
 		if (courses[i].selected) {
 			var parts = courses[i].name[0]? courses[i].name[0].split(' ') : ['', ''];
 			var subject = parts[0];
 			var code = parts[1];
-			addCourse(user.term, subject, code);
+			added.push({subject: subject, code: code});
 		}
+	}
+	n = added.length;
+	
+	// Setup the message HTML
+	var msg = $('#added-messages');
+	var html = '';
+	for (var i = 0; i < n; i ++) {
+		html += '<p class="status grey">' + added[i].subject + ' ' + added[i].code + ': waiting...</p>';
+	}
+	msg.html(html);
+	
+	// Add the courses
+	var statuses = $('#added-messages .status');
+	for (var i = 0; i < n; i ++) {
+		addCourse(user.term, added[i].subject, added[i].code, function(data, err, term, subject, code) {
+			
+			// Remove the waiting
+			var j = 0, message = subject + ' ' + code + ': ';
+			for (; j < n; j ++) {
+				if (statuses[j].innerHTML.indexOf(message) >= 0) {
+					break;
+				}
+			}
+			if (j < 0 || j >= n) {return;}
+			var s = $(statuses[j]);
+			s.removeClass('grey');
+			
+			// Determine the message
+			var colour = 'red';
+			if (err || data == '') {
+				message += 'server error, try again.';
+			} else if (data == '1') {
+				colour = 'yellow';
+				message += 'you already added this course.';
+			} else if (data == '2') {
+				message += 'could not find this course for the term specified.';
+			} else if (data == '3') {
+				message += 'multiple course matches were found.';
+			} else if (data.indexOf('\t') >= 0) {
+				colour = 'green';
+				message += 'course added successfully.';
+			} else {
+				message += 'error adding course.';
+			}
+			
+			// Update the status
+			s.addClass(colour);
+			s.html(message);
+		});
 	}
 }
 
