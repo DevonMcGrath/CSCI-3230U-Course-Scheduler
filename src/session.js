@@ -235,8 +235,13 @@ function findSections(req, res, term, subject, code, usr) {
 		// Send the proper result
 		if (found) {
 			var course = {term: term, subject: subject, code: code};
-			User.update({sid: usr.id}, {$push: {courses: course}},
-				{multi: false}, function() {});
+			User.update({sid: usr.sid}, {$push: {courses: course}},
+			{multi: false}, function(err, numAffected) {
+				if (err || numAffected.nModified != 1) {
+					System.err.println('DB COURSE PUSH FAIL: ' + (err? err : 'no users updated'));
+					System.err.println('         for course: "' + JSON.stringify(course) + '"');
+				}
+			});
 			res.send(term + '\t' + subject + '\t' + code);
 		} else {
 			res.send('3'); // more than one match, please narrow search

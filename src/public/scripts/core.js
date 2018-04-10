@@ -202,11 +202,6 @@ $(document).ready(function() {
 		user = new User(data, data.term, data.courses);
 		user.updateInfo();
 		
-		/* ------------------------ COURSE ADDITION TEST CODE ---- */
-		addCourse('201801', 'CSCI', '1061U');//FIXME remove
-		addCourse('201801', 'CSCI', '2050U');//FIXME remove
-		/////////////////////////////////////////////////////////////
-		
 		// Set the page status to 2 after the user data has loaded
 		pageStatus = 2;
 	});
