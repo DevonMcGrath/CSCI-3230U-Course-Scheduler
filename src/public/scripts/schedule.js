@@ -358,7 +358,9 @@ jQuery(document).ready(function($){
 					divName = day + sTimeHour + sTimeMin + CourseCode + CourseType;
 
 					crn = valueSelected[10];
-					var subject;
+					var subject = "";
+
+					console.log(user.courses);
 
 					$.each(uniqueData, function(key, value) {
 						if (value.crn == crn) {
@@ -439,7 +441,7 @@ jQuery(document).ready(function($){
 					divName = day + sTimeHour + sTimeMin + CourseCode + CourseType;
 
 					crn = valueSelected[6];
-					var subject;
+					var subject = "";
 
 					$.each(uniqueData, function(key, value) {
 						if (value.crn == crn) {
