@@ -18,14 +18,16 @@ function User(data, term, courses) {
 		var t = this.term;
 		var html = 'Courses: ';
 		var c = this.courses? this.courses : [], n = c.length? c.length : 0;
+		var added = 0;
 		for (var i = 0; i < n; i ++) {
 			if (c[i].term != t) {continue;}
 			var course = c[i].subject + ' ' + c[i].code;
 			html += '<span class="btn-simple" onclick="removeCourse(\'' + c[i].term +
 				'\', \'' + c[i].subject + '\', \'' + c[i].code + '\');"' +
 				' title="Remove course">' + course + '</span>';
+			added++
 		}
-		if (n == 0) {
+		if (added == 0) {
 			html += 'None';
 		}
 		$('#user-info').css('display', 'block');
@@ -203,19 +205,16 @@ $(document).ready(function() {
 		/* ------------------------ COURSE ADDITION TEST CODE ---- */
 		addCourse('201801', 'CSCI', '1061U');//FIXME remove
 		addCourse('201801', 'CSCI', '2050U');//FIXME remove
-		//removeCourse('201801', 'CSCI', '2050U');//FIXME remove
-		setTerm('201801');//FIXME remove
 		/////////////////////////////////////////////////////////////
 		
 		// Set the page status to 2 after the user data has loaded
 		pageStatus = 2;
 	});
 	
-	// ---------------------------- SECTION GET TEST ----- */
-	getSections('201801', 'CSCI', '1061U', function(data, err) {
-		console.log(data);
-	});//FIXME remove
-	//////////////////////////////////////////////////////////
+	// Add a listener to update the term
+	$('#user-info select').change(function() {
+		setTerm($('#user-info select').val());
+	});
 	
 	pageStatus = 1;
 });

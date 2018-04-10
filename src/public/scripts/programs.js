@@ -142,4 +142,17 @@ function clearSelection() {
 	}
 }
 
+/** Adds all the selected courses to the current term. */
+function addCourses() {
+	var n = courses? courses.length : 0;
+	for (var i = 0; i < n; i ++) {
+		if (courses[i].selected) {
+			var parts = courses[i].name[0]? courses[i].name[0].split(' ') : ['', ''];
+			var subject = parts[0];
+			var code = parts[1];
+			addCourse(user.term, subject, code);
+		}
+	}
+}
+
 getPrograms();
