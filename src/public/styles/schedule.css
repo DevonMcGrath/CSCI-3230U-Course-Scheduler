@@ -491,14 +491,11 @@ code modified from: https://github.com/CodyHouse/schedule-template
   }
 
 
-div.course {
-  display: table;
-  width: 100%;
-  table-layout: fixed;
-}
-
-div.course select {
-  display: table-cell;
+div.course > select {
+  display: inline-block;
+  *display: inline;
+  zoom: 1;
+  width: 20%;
   text-align: center;
 }
 

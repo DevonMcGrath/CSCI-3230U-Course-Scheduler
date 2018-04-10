@@ -134,7 +134,7 @@ jQuery(document).ready(function($){
 
 	function loadCourses() {
 		usercourses = user.courses;
-		dropdownhtml = "<h2>Select your courses here!</h2>";
+		dropdownhtml = "<h2>Select your courses here!</h2><hr>";
 		$.each(usercourses, function(count, course) {
 			if (course.term == user.term) {
 				//Make divs for each lecture/lab/tutorial to attach to.
@@ -145,6 +145,7 @@ jQuery(document).ready(function($){
 				dropdownhtml += '   Laboratory: <select id="' + course["subject"] + course["code"] + 'laboratory"></select>';
 				dropdownhtml += '   Tutorial: <select id="' + course["subject"] + course["code"] + 'tutorial"></select>';
 				dropdownhtml += "</div>";
+				dropdownhtml += "<hr>";
 				count++;
 			}
 
@@ -161,9 +162,9 @@ jQuery(document).ready(function($){
 				var tutorial = $("#" + course["subject"] + course["code"] + 'tutorial');
 
 				//Append Empty Objects to allow first item to be selected
-				lecture.append("<option> </option>");
-				laboratory.append("<option> </option>");
-				tutorial.append("<option> </option>");
+				lecture.append('<option value="' + course["code"] + 'Lecture"> </option>');
+				laboratory.append('<option value="' + course["code"] + 'Laboratory"> </option>');
+				tutorial.append('<option value	="' + course["code"] + 'Lecture"> </option>');
 
 				var uniqueTimes = [];
 				var uniqueData = [];
@@ -424,7 +425,8 @@ jQuery(document).ready(function($){
 					}
 
 				//Else a Lab/Tutorial
-				} else {
+				} else if (valueSelected.length > 1) {
+					
 					startTime = valueSelected[2] + ":" + valueSelected[3].split("-")[0];
 					endTime = valueSelected[3].split("-")[1] + ":" + valueSelected[4];
 					
@@ -455,6 +457,17 @@ jQuery(document).ready(function($){
 						});
 						addEvent(day, startTime, endTime, valueSelected[0] + " " + valueSelected[5] + "<br />CRN:" +valueSelected[6], courseColours[valueSelected[0]]);
 					}
+				} else {
+					$.each(inSchedule, function(data) {
+						if(data.indexOf(valueSelected[0]) >= 0) {
+							$("#" + data).remove();
+							inSchedule[data] =  0;
+							//console.log(data);
+							setSectionSelected(user.term, valueSelected[6], false, function(d) {
+								//console.log(d);
+							});
+						}
+					});
 				}
 			}});
 	}
