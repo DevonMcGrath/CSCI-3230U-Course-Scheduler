@@ -1,9 +1,10 @@
 jQuery(document).ready(function($){
-    //Variables used within select courses
+	
+    // Variables used within select courses
     var usercourses = $("#usercourses");
     var addcourses = $("#useraddcourses");
     var table = $("#selectedcourses");
-    var results = $("#results");
+    var results = $("#added-messages");
 
 
     // ============= Functions ===============
@@ -16,12 +17,16 @@ jQuery(document).ready(function($){
     }
 
 
-    //Refresh the select-courses table by removing old values and repopulating it
+    // Refresh the select-courses table by removing old values and repopulating it
     function refreshTable() {
         $("#selectedcourses > tbody > tr").remove();
-            $.each(user.courses, function(count, course) {
-                table.append('<tr><td>' + convertSemeseter(course["term"]) + '</td><td>' + course["subject"] + '</td><td>' + course["code"] + '</td><td><button class="btn" id="delete">Delete!</button></td></tr>');
-            });
+		$.each(user.courses, function(count, course) {
+			var term = course.term, subject = course.subject, code = course.code;
+			table.append('<tr><td>' + convertSemeseter(term) + '</td><td>' +
+				subject + '</td><td>' + code + '</td><td><button class="btn" ' +
+				'onclick="removeCourse(\'' + term + '\', \'' + subject + '\', \'' +
+				code + '\')">Delete!</button></td></tr>');
+		});
     }
 
 
@@ -31,70 +36,65 @@ jQuery(document).ready(function($){
     // the user object is accessible
     setTimeout(function() {
         refreshTable();
-        if (user.term) {
-            $("#term").append('<option value="' + user.term + '">' + user.term + '</option>');
-        } else {
-            results.html("<h2>Term not selected!</h2>");
-        }
     }, 2000);
 
+    // Add a listener for add/remove course so the table is updated
+	addAddCourseListener(refreshTable);
+    addRemoveCourseListener(refreshTable);
 
-
-    // ================= Listenters ==================
-    addAddCourseListener(function(data, err) {
-        refreshTable();
-    });
-
-    addRemoveCourseListener(function(data, err) {
-        refreshTable();
-        results.html("<h2>Successfully removed the course!</h2>");
-    });
-
-    addSetTermListener(function(data, err) {
-        $("#term > option").remove();
-        $("#term").append('<option value="' + user.term + '">' + user.term + '</option>');
-    });
-
-    $("#selectedcourses").on('click', '#delete', function() {
-        var item = $(this).closest("tr"), tds = item.find("td");
-        var courseinfo = [];
-        $.each(tds, function() {
-            courseinfo.push($(this).text());
-        })
-        
-        var localterm = courseinfo[0].split(" ")[1] + ((courseinfo[0].split(" ")[1] == "Winter") ? "01" : courseinfo[0].split(" ")[1] == "Summer" ? "05" : "09");
-        removeCourse(localterm, courseinfo[1], courseinfo[2], function(data, err) {
-            results.html("<h2>Successfully Removed Course!</h2>");
-            refreshTable();
-        });
-    });
-
+	// Add a course as per user input
     $("#submit").click(function() {
-        //Get Values on Submit
-        var semester = $("#term option:selected").text();
-        var subject = $("#subject option:selected").text().split("-")[0];
-        subject = $.trim(subject);
+		
+        //Get values on Submit
+		var msg = $('#added-messages');
+		msg.html('');
+        var subject = $("#subject option:selected").val();
         var code = $("#code").val();
         $("#code").val('');
 
-        //That the code is ####
-        var codetester = new RegExp('^[0-9]+$');
-        if(codetester.test(code) && code.length == 4) {
-            code = code + "U";
-            addCourse(semester, subject, code, function(val, err) {
-                if (val.length > 1) {
-                    results.html("<h2> Successfully Added the Course!</h2>");
-                    refreshTable()
-                } else {
-                    results.html("<h2> Unable to add course! Did you make sure the code is correct or maybe it already exists?</h2>");
-                }
-            });
-        } else {
-            results.html("<h2> Improper Course Code</h2>");
+        // Test that the code is only numbers
+        var pattern = /[0-9]{0,4}[a-z]?$/gi;
+        if(code.search(pattern) == 0) {
+			
+			msg.html('<p class="status grey">' + subject + ' ' + code + ': waiting...</p>');
+			
+			// Add the course
+            addCourse(user.term, subject, code, function(data, err, term, subject, code) {
+			
+				// Remove the waiting
+				var s = $('#added-messages p');
+				var message = subject + ' ' + code + ': ';
+				s.removeClass('grey');
+				
+				// Determine the message
+				var colour = 'red';
+				if (err || data == '') {
+					message += 'server error, try again.';
+				} else if (data == '1') {
+					colour = 'yellow';
+					message += 'you already added this course.';
+				} else if (data == '2') {
+					message += 'could not find this course for the term specified.';
+				} else if (data == '3') {
+					message += 'multiple course matches were found.';
+				} else if (data.indexOf('\t') >= 0) {
+					colour = 'green';
+					message += 'course added successfully.';
+				} else {
+					message += 'error adding course.';
+				}
+				
+				// Update the status
+				s.addClass(colour);
+				s.html(message);
+			});
+        } else { // pattern not matched
+            msg.html('<p class="status red">Code "' + code + '" is not a valid code.</p>');
         }
     });
 });
 
+// Add a listener so that when enter is pressed, the user input is submitted
 $(document).keypress(function(e) {
     if(e.which == 13) {
         $('#submit').trigger('click');

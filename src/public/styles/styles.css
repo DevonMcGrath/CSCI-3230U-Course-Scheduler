@@ -79,6 +79,7 @@ input[type=text] {padding: 8px;}
 }
 
 .btn:hover {
+	color: white;
 	background-color: #005C91;
 	background: -webkit-linear-gradient(#0098EA, #005C91, #0098EA);
 	background: -moz-linear-gradient(#0098EA, #005C91, #0098EA);
