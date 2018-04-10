@@ -150,7 +150,10 @@ function addCourse(term, subject, code, callback) {
 		// Add course
 		if (!err && data && data.indexOf('\t') >= 0) {
 			var info = data.split('\t');
-			var course = {term: info[0], subject: info[1], code: info[2]};
+			term = info[0];
+			subject = info[1];
+			code = info[2];
+			var course = {term: term, subject: subject, code: code};
 			user.courses.push(course);
 			user.updateInfo();
 		}

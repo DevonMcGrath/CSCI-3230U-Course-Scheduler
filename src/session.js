@@ -175,24 +175,47 @@ function addCourse(req, res, term, subject, code, id) {
 		}
 		
 		// Check database for course
-		Section.find({term: term, subject: subject, code: code}).then(function(results) {
+		var subjectExp = new RegExp('^' + subject, 'i');
+		var codeExp = new RegExp('^' + code, 'i');
+		Section.find({term: term, subject: subjectExp, code: codeExp}).then(function(results) {
 			
 			// Sections do not exist
 			if (results.length == 0) {
 				findSections(req, res, term, subject, code, usr);
 			}
 			
-			// Add the course to the user
+			// Check that only one course was found
 			else {
 				
-				System.out.println('\t              > adding ' + subject + ' ' + code + ' from cache',
-					System.FG['bright-green']);
+				// There was one course found
+				var courses = getCourses(results), n = courses.length;
+				if (n == 1) {
+					var course = {
+						term: courses[0][0].term,
+						subject: courses[0][0].subject,
+						code: courses[0][0].code
+					};
+					System.out.println('\t              > adding ' +
+						course.subject + ' ' + course.code + ' from cache',
+						System.FG['bright-green']);
+					
+					// Update the database
+					User.update({sid: id}, {$push: {courses: course}},
+					{multi: false}, function(err, numAffected) {
+						if (err || numAffected.nModified != 1) {
+							System.err.println('DB COURSE PUSH FAIL: ' + (err? err : 'no users updated'));
+							System.err.println('         for course: "' + JSON.stringify(course) + '"');
+						}
+					});
+					
+					// Send the course that was added
+					res.send(course.term + '\t' + course.subject + '\t' + course.code);
+				}
 				
-				// Update the user and send the result
-				var course = {term: term, subject: subject, code: code};
-				User.update({sid: id}, {$push: {courses: course}},
-					{multi: false}, function() {});
-				res.send(term + '\t' + subject + '\t' + code);
+				// Multiple courses found
+				else {
+					res.send('3'); // more than one match, please narrow search
+				}
 			}
 		});
 	});
@@ -222,19 +245,18 @@ function findSections(req, res, term, subject, code, usr) {
 			return false;
 		}
 		
-		// Check for a result that matches the search (i.e. just one course)
-		var found = false, n = sections.length;
-		for (var i = 0; i < n; i ++) {
-			var s = sections[i];
-			if (s.term == term && s.subject == subject && s.code == code) {
-				found = true;
-				break;
-			}
-		}
-		
-		// Send the proper result
-		if (found) {
-			var course = {term: term, subject: subject, code: code};
+		// There was one course found
+		var courses = getCourses(sections), n = courses.length;
+		if (n == 1) {
+			var course = {
+				term: courses[0][0].term,
+				subject: courses[0][0].subject,
+				code: courses[0][0].code
+			};
+			System.out.println('\t              > adding ' + course.subject +
+				' ' + course.code + ' from parsed sections', System.FG['bright-green']);
+			
+			// Update the database
 			User.update({sid: usr.sid}, {$push: {courses: course}},
 			{multi: false}, function(err, numAffected) {
 				if (err || numAffected.nModified != 1) {
@@ -242,21 +264,30 @@ function findSections(req, res, term, subject, code, usr) {
 					System.err.println('         for course: "' + JSON.stringify(course) + '"');
 				}
 			});
-			res.send(term + '\t' + subject + '\t' + code);
-		} else {
+			
+			// Send the course that was added
+			res.send(course.term + '\t' + course.subject + '\t' + course.code);
+		}
+		
+		// Multiple courses found
+		else {
 			res.send('3'); // more than one match, please narrow search
 		}
 		
 		// Add the sections to the database
 		System.out.println('DB: inserting sections...', System.FG['bright-yellow']);
-		Section.collection.insert(sections, function(err) {
-			if (err) {
-				System.err.println('DB ERROR: failed to insert new sections');
-			} else {
-				System.out.println('DB: ' + sections.length + ' sections inserted.',
-					System.FG['bright-yellow']);
+		for (var i = 0; i < n; i ++) {
+			var sectionArr = courses[i], m = sectionArr.length;
+			for (var j = 0; j < m; j ++) {
+				var s = sectionArr[j];
+				Section.update({crn: s.crn}, s, {upsert: true}, function(err) {
+					if (err) {
+						System.err.println('DB ERROR: could not insert section, ' + err);
+					}
+				});
 			}
-		});
+		}
+		System.out.println('DB: insertions finished calling', System.FG['bright-yellow']);
 	});
 }
 
@@ -549,6 +580,32 @@ function setSectionSelected(req, res, term, crn, selected, id) {
 			}
 		});
 	});
+}
+
+/**
+ * Breaks sections down into their unique courses.
+ *
+ *	sections	the array of sections.
+ */
+function getCourses(sections) {
+	
+	// Split into courses
+	var courses = [], n = sections && sections.length? sections.length : 0;
+	for (var i = 0; i < n; i ++) {
+		var m = courses.length, s = sections[i], added = false;
+		for (var j = 0; j < m; j ++) {
+			var c = courses[j][0];
+			if (c.term == s.term && c.subject == s.subject && c.code == s.code) {
+				added = true;
+				courses[j].push(s);
+			}
+		}
+		if (!added) {
+			courses.push([s]);
+		}
+	}
+	
+	return courses;
 }
 
 // Export the necessary functions

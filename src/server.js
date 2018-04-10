@@ -158,6 +158,15 @@ function handleUserCmd(req, res, id) {
 	
 	System.out.println('\t       command: "' + cmd + '"', System.FG['bright-cyan']);
 	
+	// Clean relevant inputs
+	if (term) { // only numbers are allowed in the term (e.g. 201701)
+		term = term.replace(/[^0-9]/gi, '');
+	} if (subject) { // only a-z characters are allowed in the subject
+		subject = subject.replace(/[^a-z]/gi, '');
+	} if (code) { // only letters and numbers allowed in the code (e.g. 1000U)
+		code = code.replace(/[^a-z0-9]/gi, '');
+	}
+	
 	// Get user info
 	if (cmd == 'GETINFO') {
 		session.getInfo(id, function(info) {
