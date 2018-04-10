@@ -165,8 +165,21 @@ jQuery(document).ready(function($){
 				laboratory.append("<option> </option>");
 				tutorial.append("<option> </option>");
 
+				var uniqueTimes = [];
+				var uniqueData = [];
+
+				for(i = 0; i < data.length; i++) {
+					day = data[i].times[0].day;
+					start = data[i].times[0].start;
+					if(uniqueTimes.indexOf(day + start) === -1) {
+						console.log(day + start);
+						uniqueTimes.push(day + start);
+						uniqueData.push(data[i]);
+					}
+				}
+
 				//Cycle through each "data" that we got from getSections to parse and append to the proper HTML Object
-				$.each(data, function(key, courses) {
+				$.each(uniqueData, function(key, courses) {
 					// The way each element is appended is to store each cruicial piece of information in the "Value" which in thise case is COURSE:STARTTIME:ENDTIME
 					//		then print it out for the user to select it
 					if(courses["times"][0]["scheduleType"] == "Laboratory"){
