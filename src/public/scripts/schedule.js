@@ -105,8 +105,14 @@ jQuery(document).ready(function($){
 
 	//Function to convert minutes to hh:mm as the values are scraped in minutes
 	function convertTohhmm(minutes) {
-		var hours = Math.floor(minutes / 60);
-		var minutes = minutes % 60;
+		var hours = ''+Math.floor(minutes / 60);
+		if (hours.length == 1) {
+			hours = '0' + hours;
+		}
+		var minutes = '' + (minutes % 60);
+		if (minutes.length == 1) {
+			minutes = '0' + minutes;
+		}
 		return (hours + ":" + minutes);
 	}
 
@@ -276,10 +282,15 @@ jQuery(document).ready(function($){
 		});
 
 		courseinfo = jQuery.unique(courseinfo);
-
+		var fileData = '';
+		
 		$.each(courseinfo, function(data) {
 			$("#crns").append("<p>" + courseinfo[data] + "</p>");
+			fileData += courseinfo[data] + '\r\n';
 		});
+		if (fileData.length > 0) {
+			download('crns-' + user.term, fileData);
+		}
 
 		var target = $(this).attr('data-popup-open');
 		$('[data-popup="' + target + '"]').fadeIn(350);

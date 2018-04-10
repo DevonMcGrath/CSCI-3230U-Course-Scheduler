@@ -39,6 +39,20 @@ function User(data, term, courses) {
 	}
 }
 
+/** Downloads data in the specified file. */
+function download(filename, data) {
+	var elem = document.createElement('a');
+	elem.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data));
+	elem.setAttribute('download', filename);
+
+	elem.style.display = 'none';
+	document.body.appendChild(elem);
+
+	elem.click();
+
+	document.body.removeChild(elem);
+}
+
 /** Logs an error message. */
 function log(msg) {
 	console.error('UOIT COURSE SCHEDULER: ' + msg);
