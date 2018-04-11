@@ -212,9 +212,18 @@ function handleUserCmd(req, res, id) {
 	// Select section
 	else if (cmd == 'SELECTSECTION') {
 		
+		// Perform input cleaning
+		var crn = req.body.crn;
+		var state = req.body.state? true : false;
+		if (crn) { // only numbers are allowed in the CRN
+			crn = crn.replace(/[^0-9]/gi, '');
+		}
+		System.out.println('\t              > term="' + term + '", CRN="' + crn + '"',
+			System.FG['bright-green']);
+		
 		// Get the session to handle the request
 		session.setSectionSelected(req, res, term,
-			req.body.crn, req.body.state, id);
+			crn, req.body.state, id);
 	}
 	
 	// 400 Bad Request: Not sure what to do

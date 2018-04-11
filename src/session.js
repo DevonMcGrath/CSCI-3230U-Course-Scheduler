@@ -561,6 +561,8 @@ function setSectionSelected(req, res, term, crn, selected, id) {
 			newSections.push({term: term, crn: crn});
 		}
 		if (done || newSections.length == n) {
+			System.out.println('\t              > ' + (selected? '' : 'de') +
+				'selected ' + crn + ' from a user', System.FG['bright-green']);
 			res.send('1');
 			return;
 		}
@@ -571,7 +573,7 @@ function setSectionSelected(req, res, term, crn, selected, id) {
 			
 			// Error updating
 			if (err || numAffected.nModified != 1) {
-				System.err.println('\t              > DB SECTION SELECT UPDATE FAILED');
+				System.err.println('\t              > DB SECTION SELECT UPDATE FAILED' + (err? ': ' + err : ''));
 				res.send('0');
 			} else {
 				System.out.println('\t              > ' + (selected? '' : 'de') +
