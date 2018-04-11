@@ -373,12 +373,12 @@ jQuery(document).ready(function($){
 					if (inSchedule[divName] == 1) {
 						$("#"+ divName).remove();
 						inSchedule[divName] = 0;
-						setSectionSelected(user.term, valueSelected[9], false, function(d) {
+						setSectionSelected(user.term, crn, false, function(d) {
 							//console.log(d);
 						});
 					} else {
 						addEvent(day, startTime, endTime, subject + " " + valueSelected[0] + " " + valueSelected[9] + "<br />CRN:" + valueSelected[10], courseColours[valueSelected[0]]);
-						setSectionSelected(user.term, valueSelected[9], true, function(d) {
+						setSectionSelected(user.term, crn, true, function(d) {
 							//console.log(d);
 						});
 					}
